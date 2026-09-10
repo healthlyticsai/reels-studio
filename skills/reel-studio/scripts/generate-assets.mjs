@@ -3,7 +3,7 @@
  *
  * Gemini cannot emit an alpha channel — asked for transparency it paints a fake
  * checkerboard into the pixels. So every prompt is rendered against a flat magenta
- * backdrop that matte.py keys out afterwards.
+ * backdrop that matte.mjs keys out afterwards.
  *
  * Usage:
  *   node scripts/generate-assets.mjs                 # everything in the manifest
@@ -103,5 +103,5 @@ for (const asset of queue) {
   }
 }
 
-console.log("\nNow run: python3 scripts/matte.py");
-console.log("Flat single-colour shapes (ink blots, silhouettes) need matte-ink.py instead.");
+console.log("\nNow run: node scripts/matte.mjs");
+console.log("Flat single-colour shapes (ink blots, silhouettes) need matte-ink.mjs instead.");

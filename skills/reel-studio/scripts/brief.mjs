@@ -118,7 +118,7 @@ md.push("");
 md.push("## Asset manifest", "", "| Name | Kind | Aspect | Used in |", "|---|---|---|---|");
 for (const a of plan.assetManifest ?? [])
   md.push(`| \`${a.name}\` | ${a.kind} | ${a.aspect} | ${(a.usedIn ?? []).join(", ")} |`);
-md.push("", "Generate with `node scripts/generate-assets.mjs`, then matte with `python3 scripts/matte.py`.", "");
+md.push("", "Generate with `node scripts/generate-assets.mjs`, then matte with `node scripts/matte.mjs`.", "");
 
 md.push("## Sound cues", "", "| Lands on | File | Volume | Why |", "|---|---|---|---|");
 for (const s of plan.sfx ?? []) md.push(`| "${s.onWords}" | \`${s.file}\` | ${s.volume} | ${s.why} |`);

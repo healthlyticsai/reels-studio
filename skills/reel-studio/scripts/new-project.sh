@@ -43,7 +43,7 @@ cp -R "$SKILL_DIR/assets/sfx/." public/sfx/ 2>/dev/null || true
 cp -R "$SKILL_DIR/assets/art/." public/art/ 2>/dev/null || true
 
 # Per-project copies so the project stays runnable after the skill is uninstalled.
-for f in generate-assets.mjs matte.py matte-ink.py transcribe.mjs contact-sheet.py env.mjs; do
+for f in generate-assets.mjs matte.mjs matte-ink.mjs transcribe.mjs contact-sheet.mjs env.mjs; do
   cp "$SKILL_DIR/scripts/$f" scripts/
 done
 
@@ -86,11 +86,14 @@ p.dependencies = {
   '@remotion/shapes': core,
   '@remotion/paths': core,
   '@remotion/install-whisper-cpp': core,
+  // Pure-JS image processing for the chroma-key matte and contact sheets, so
+  // the pipeline needs nothing beyond Node.
+  jimp: '1.6.1',
 };
 p.scripts = {
   ...p.scripts,
   transcribe: 'node scripts/transcribe.mjs',
-  art: 'node scripts/generate-assets.mjs && python3 scripts/matte.py',
+  art: 'node scripts/generate-assets.mjs && node scripts/matte.mjs',
   render: 'remotion render Reel out/$SLUG.mp4 --codec=h264 --crf=20 --concurrency=6',
 };
 fs.writeFileSync('package.json', JSON.stringify(p, null, 2));

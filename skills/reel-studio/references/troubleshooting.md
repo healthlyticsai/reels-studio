@@ -21,13 +21,13 @@ so asking for a "transparent background" gets you a picture *of* transparency.
 The prompts in `generate-assets.mjs` request a flat magenta backdrop for exactly this reason.
 If you see a checkerboard, the prompt lost its chroma-key direction — regenerate, then matte.
 
-## An asset comes back "98% opaque" from matte.py
+## An asset comes back "98% opaque" from matte.mjs
 
 The model ignored the magenta instruction and used a grey studio backdrop, so there was
 nothing to key. Regenerate just that one:
 
 ```bash
-node scripts/generate-assets.mjs <asset-name> && python3 scripts/matte.py <asset-name>.png
+node scripts/generate-assets.mjs <asset-name> && node scripts/matte.mjs <asset-name>.png
 ```
 
 If it happens twice, make the backdrop instruction more emphatic in the asset's `prompt`
@@ -40,11 +40,11 @@ blend of shape and backdrop, so despilling cannot fully recover them. Use the lu
 matte instead:
 
 ```bash
-python3 scripts/matte-ink.py <asset-name>.png "#0F172A"
+node scripts/matte-ink.mjs <asset-name>.png "#0F172A"
 ```
 
 This only works for shapes with one fill colour. Photographic cutouts are fine with
-`matte.py` — their edges have real detail to despill against.
+`matte.mjs` — their edges have real detail to despill against.
 
 ## Whisper download times out partway
 
@@ -103,7 +103,7 @@ identical.
 They can genuinely differ. Always check the delivered file:
 
 ```bash
-python3 scripts/contact-sheet.py --video out/reel.mp4 /tmp/final.png
+node scripts/contact-sheet.mjs --video out/reel.mp4 /tmp/final.png
 ```
 
 ## Render is very slow

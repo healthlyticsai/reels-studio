@@ -48,12 +48,12 @@ A `.env` file in the reel folder works too. Never commit either.
 
 | Need | Why | Check |
 |---|---|---|
-| Node 20+ | Remotion | `node --version` |
-| Python 3 with Pillow + NumPy | Keying the generated artwork | `python3 -c "import PIL, numpy"` |
+| Node 20+ | Everything — Remotion, image keying, transcription | `node --version` |
 | A Gemini API key | Planning and image generation | `echo $GEMINI_API_KEY` |
 | ~2GB free disk | whisper.cpp model, per project | |
 
-If Python is missing the libraries: `pip3 install pillow numpy`.
+No Python, no native compilation, no system packages. `npm install` in the project folder
+pulls everything.
 
 ## Using it
 

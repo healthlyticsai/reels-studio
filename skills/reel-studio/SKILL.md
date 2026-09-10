@@ -125,20 +125,20 @@ including how transition overlap affects scene durations.
 
 ```bash
 node scripts/generate-assets.mjs        # reads plan.json's asset manifest
-python3 scripts/matte.py                # keys out the chroma backdrop, writes real alpha
+node scripts/matte.mjs                # keys out the chroma backdrop, writes real alpha
 ```
 
 Gemini cannot emit an alpha channel — it returns JPEG and will paint a fake checkerboard if
 you ask for transparency. The prompts therefore request a flat magenta backdrop that
-`matte.py` keys out. Flat single-colour shapes (ink blots, silhouettes) need
-`matte-ink.py` instead, which builds alpha from luminance so anti-aliased edges do not keep
+`matte.mjs` keys out. Flat single-colour shapes (ink blots, silhouettes) need
+`matte-ink.mjs` instead, which builds alpha from luminance so anti-aliased edges do not keep
 a magenta fringe. Details in `references/production-playbook.md`.
 
 Inspect what came back before building on it — a contact sheet over a loud colour makes bad
 mattes obvious immediately:
 
 ```bash
-python3 scripts/contact-sheet.py public/art /tmp/contact.png
+node scripts/contact-sheet.mjs public/art /tmp/contact.png
 ```
 
 Then Read that PNG. Regenerate any asset that came back wrong:
@@ -181,7 +181,7 @@ npx remotion render Reel out/<topic-slug>.mp4 --codec=h264 --crf=20 --concurrenc
 what ships.
 
 ```bash
-python3 scripts/contact-sheet.py --video out/<topic-slug>.mp4 /tmp/final.png
+node scripts/contact-sheet.mjs --video out/<topic-slug>.mp4 /tmp/final.png
 ```
 
 Read that sheet. If it is clean, send the mp4 with `SendUserFile` and summarise what you

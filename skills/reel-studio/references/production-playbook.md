@@ -140,14 +140,15 @@ The working pattern:
 
 1. Prompt for a **flat solid `#FF00FF` backdrop** filling the frame, explicitly stating that
    no magenta appears on the subject and no shadow falls on the backdrop.
-2. `matte.py` keys it out, despills the magenta fringe from anti-aliased edges, and trims to
-   the bounding box.
-3. **Flat single-colour shapes** (ink blots, silhouettes, solid graphics) need `matte-ink.py`
+2. `matte.mjs` keys it out, despills the magenta fringe from anti-aliased edges, and trims to
+   the bounding box. It is pure JS (jimp), so the pipeline needs nothing beyond Node, and it
+   is idempotent — re-running it on an already-keyed asset skips rather than flattening it.
+3. **Flat single-colour shapes** (ink blots, silhouettes, solid graphics) need `matte-ink.mjs`
    instead. Chroma-keying them leaves a pink halo on every edge pixel; rebuilding alpha from
    luminance and forcing the fill colour cannot fringe at all.
 
 Always Read a contact sheet over a loud colour before building on the assets —
-`contact-sheet.py` composites over hot pink so a failed matte is unmissable. A common failure
+`contact-sheet.mjs` composites over hot pink so a failed matte is unmissable. A common failure
 is the model ignoring the magenta instruction and returning a grey studio backdrop; that
 asset comes back near-100% opaque and needs regenerating.
 
@@ -205,7 +206,7 @@ overlapping.
 When the render finishes, check the **delivered mp4** rather than trusting the composition:
 
 ```bash
-python3 scripts/contact-sheet.py --video out/reel.mp4 /tmp/final.png
+node scripts/contact-sheet.mjs --video out/reel.mp4 /tmp/final.png
 ```
 
 Both bugs found in the reel this skill was built from — a supporting line colliding with a
