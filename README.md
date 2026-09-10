@@ -30,6 +30,7 @@ narration rather than laid over it.
 
 - [Installation](#installation)
 - [Making your first reel](#making-your-first-reel)
+- [Command reference](#command-reference)
 - [Writing a good topic](#writing-a-good-topic)
 - [Revising a reel](#revising-a-reel)
 - [What ends up in the folder](#what-ends-up-in-the-folder)
@@ -195,6 +196,34 @@ From here it is hands-off. Claude will:
 
 Expect **15–30 minutes** end to end, most of it rendering. Claude will show you the finished
 mp4 when it is done, along with a note of anything it changed from the plan.
+
+---
+
+## Command reference
+
+You never have to use these — describing what you want in plain language works just as well,
+and Claude picks the right step. They are here for when you would rather type a command than
+a sentence, and because typing `/reel` shows you the whole set.
+
+| Command | What it does |
+|---|---|
+| `/reel <topic>` | Start a new reel. Scaffolds the folder, gets the plan, shows you the voiceover script, then waits for your audio. |
+| `/reel-build` | Build it, once the voiceover and music are in place. |
+| `/reel-assets` | Regenerate the photos and textures — use it when one comes back wrong. |
+| `/reel-check` | Render still frames across the reel and check them for layout problems. |
+| `/reel-render` | Render the video and verify the finished file. |
+| `/reel-revise <change>` | Change something in a reel that already exists. |
+
+Each takes the same free-text detail you would have typed anyway:
+
+```
+/reel one-click referral letters. Audience: Ontario family physicians on OSCAR.
+Position against retyping referrals by hand. 45 seconds.
+```
+
+```
+/reel-revise the ending photo looks too corporate, warmer please
+```
 
 ---
 

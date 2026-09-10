@@ -17,6 +17,21 @@ that everything else is cut to — there is no point building animation before i
   Phase 3  transcribe VO ──▶ derive timeline ──▶ generate art ──▶ build scenes ──▶ render
 ```
 
+## Slash commands
+
+Each phase has a command, so a team member never has to remember the script names. They all
+load this skill and follow the phase below; use them when the person invokes one, and follow
+this file directly otherwise.
+
+| Command | Covers |
+|---|---|
+| `/reel <topic>` | Phase 1 — scaffold, brief, show the script, stop at the hand-off |
+| `/reel-build` | Phase 3 — transcribe, re-cut the timeline, generate art, write scenes |
+| `/reel-assets` | Generate, key and inspect the artwork |
+| `/reel-check` | Render stills across the reel and read them |
+| `/reel-render` | Render the mp4 and verify the delivered file |
+| `/reel-revise` | Change an existing reel in place |
+
 ## Before you start
 
 Set `SKILL_DIR` once — every command below uses it. When installed as a plugin, Claude Code

@@ -43,7 +43,7 @@ cp -R "$SKILL_DIR/assets/sfx/." public/sfx/ 2>/dev/null || true
 cp -R "$SKILL_DIR/assets/art/." public/art/ 2>/dev/null || true
 
 # Per-project copies so the project stays runnable after the skill is uninstalled.
-for f in generate-assets.mjs matte.mjs matte-ink.mjs transcribe.mjs contact-sheet.mjs env.mjs; do
+for f in generate-assets.mjs matte.mjs matte-ink.mjs transcribe.mjs contact-sheet.mjs check-audio.mjs env.mjs; do
   cp "$SKILL_DIR/scripts/$f" scripts/
 done
 
