@@ -1,0 +1,43 @@
+{
+  "name": "Waivs",
+  "product": "Waivs Scribe",
+  "url": "waivs.ai/products/waivs-scribe",
+  "font": {
+    "family": "Inter",
+    "weights": ["400", "500", "600", "700", "800"]
+  },
+  "colors": {
+    "primary": "#2C6BAC",
+    "primaryDeep": "#1E4E80",
+    "teal": "#38B2AC",
+    "tealLight": "#5FD3CD",
+    "slate": "#0F172A",
+    "slate700": "#334155",
+    "slate500": "#64748B",
+    "slate300": "#CBD5E1",
+    "slate200": "#E2E8F0",
+    "slate100": "#F1F5F9",
+    "white": "#FFFFFF",
+    "danger": "#EF4444",
+    "dangerDeep": "#B91C1C",
+    "amber": "#F59E0B",
+    "green": "#10B981",
+    "highlight": "#DBF4F2",
+    "highlightWarn": "#FECACA"
+  },
+  "gradient": {
+    "horizontal": "linear-gradient(90deg, rgba(44,107,172,1) 20%, rgba(56,178,172,1) 100%)",
+    "diagonal": "linear-gradient(135deg, rgba(44,107,172,1) 0%, rgba(56,178,172,1) 100%)",
+    "text": "linear-gradient(96deg, rgba(44,107,172,1) 8%, rgba(56,178,172,1) 92%)"
+  },
+  "glow": "radial-gradient(circle, rgba(56,178,172,0.35) 0%, rgba(44,107,172,0.2) 45%, rgba(44,107,172,0) 70%)",
+  "logo": {
+    "mark": "logo/mark.png",
+    "markWhite": "logo/mark-white.png",
+    "lockup": "logo/lockup.png",
+    "lockupWhite": "logo/lockup-white.png"
+  },
+  "captions": {
+    "misheardBrandTerms": { "waves": "Waivs", "oscar": "OSCAR", "soap": "SOAP" }
+  }
+}

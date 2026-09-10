@@ -1,0 +1,7 @@
+{
+  "name": "reel-studio",
+  "description": "Plan, build and render brand-consistent Vox-style vertical promo reels with Remotion, from a one-line topic.",
+  "version": "1.0.0",
+  "author": { "name": "Waivs Marketing" },
+  "keywords": ["remotion", "video", "reel", "marketing", "motion-graphics", "gemini"]
+}

@@ -1,0 +1,11 @@
+{
+  "name": "waivs-marketing",
+  "owner": { "name": "Waivs Marketing" },
+  "plugins": [
+    {
+      "name": "reel-studio",
+      "source": "./",
+      "description": "Plan, build and render brand-consistent Vox-style vertical promo reels with Remotion, from a one-line topic."
+    }
+  ]
+}
