@@ -1,7 +1,7 @@
 {
-  "name": "waivs-marketing",
+  "name": "healthlytics",
   "owner": {
-    "name": "Waivs Marketing"
+    "name": "Healthlytics AI"
   },
   "plugins": [
     {
@@ -11,7 +11,7 @@
     }
   ],
   "metadata": {
-    "description": "Vertical promo reel production for the marketing team \u2014 topic in, rendered reel out.",
+    "description": "Marketing tooling for Healthlytics AI \u2014 reel production for Waivs.",
     "version": "1.0.0"
   }
 }

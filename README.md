@@ -43,7 +43,8 @@ narration rather than laid over it.
 
 ## Installation
 
-You need this once per computer. Budget ten minutes.
+You need this once per computer. Budget fifteen minutes, most of it getting two
+credentials in place.
 
 ### What you need first
 
@@ -51,7 +52,8 @@ You need this once per computer. Budget ten minutes.
 |---|---|---|
 | **Claude Code** | Runs the skill | `claude --version` |
 | **Node 20 or newer** | Everything — video, images, transcription | `node --version` |
-| **A Gemini API key** | Writing the plan and generating the artwork | see step 1 |
+| **Access to the private repo** | The plugin is fetched from GitHub | see step 1 |
+| **A Gemini API key** | Writing the plan and generating the artwork | see step 2 |
 | **~2GB free disk** | Speech model, downloaded once, plus each project | |
 
 Nothing else. No Python, no Homebrew packages, no compilers.
@@ -59,7 +61,61 @@ Nothing else. No Python, no Homebrew packages, no compilers.
 If `node --version` says anything below 20, or the command is not found, install Node from
 [nodejs.org](https://nodejs.org) and pick the LTS version.
 
-### Step 1 — Get a Gemini API key
+### Step 1 — Get access to the repo
+
+The plugin lives in a **private** repository:
+**https://github.com/healthlyticsai/reels-studio**
+
+Claude Code installs a plugin by cloning that repo, so your computer has to be able to reach
+it first. Two things are needed:
+
+1. **You are a member of the `healthlyticsai` GitHub organisation** with read access to
+   `reels-studio`. Ask whoever runs the org to add you — nothing below works until they have.
+2. **Git on your machine can authenticate as you.** Pick whichever of these you prefer.
+
+**The easy way — GitHub CLI**
+
+```bash
+brew install gh && gh auth login
+```
+
+Choose **GitHub.com**, then **HTTPS**, then **Login with a web browser**, and follow the
+prompts. This sets git up for everything, not just this plugin.
+
+**The manual way — a personal access token**
+
+1. Go to **https://github.com/settings/tokens** → *Generate new token (classic)*
+2. Tick the **`repo`** scope, generate it, and copy the token
+3. In Terminal, clone the repo once so your Mac stores the credential:
+
+```bash
+git clone https://github.com/healthlyticsai/reels-studio.git /tmp/auth-check
+```
+
+When it asks for a **username**, enter your GitHub username. When it asks for a **password**,
+paste the **token** — not your GitHub password. Then clean up:
+
+```bash
+rm -rf /tmp/auth-check
+```
+
+macOS keeps the token in your keychain, so this is a one-time step.
+
+> **If the organisation uses single sign-on**, your token also needs authorising for
+> `healthlyticsai` — there is an **Authorize** button beside the token on the tokens page.
+> Without it the clone fails even though the token looks correct.
+
+**Check it worked.** This should print a list of branches rather than asking for a password:
+
+```bash
+git ls-remote https://github.com/healthlyticsai/reels-studio.git
+```
+
+If it asks for credentials again, or says `Repository not found`, you are either not in the
+org yet or the token is missing the `repo` scope. `Repository not found` is what GitHub
+returns for a private repo you cannot see — it does not mean the repo is gone.
+
+### Step 2 — Get a Gemini API key
 
 1. Go to **https://aistudio.google.com/apikey**
 2. Sign in with your Google account
@@ -89,29 +145,30 @@ try once more.
 > **Keep the key private.** It is tied to your Google account and spends real quota. Do not
 > paste it into a shared document, a git commit, or a Slack channel.
 
-### Step 2 — Install the plugin
+### Step 3 — Install the plugin
 
 Open Claude Code and run these two commands. The first tells Claude where to find the
 plugin; the second installs it.
 
 ```
-/plugin marketplace add mohsinchd/claude-reel-studio
+/plugin marketplace add healthlyticsai/reels-studio
 ```
 
 ```
-/plugin install reel-studio@waivs-marketing
+/plugin install reel-studio@healthlytics
 ```
 
-That first path is the GitHub repo this lives in. If it has been pushed somewhere else, use
-that path instead — ask whoever set it up.
+If the first command fails, it is almost always step 1 — go back and check
+`git ls-remote` works.
 
-### Step 3 — Check it took
+### Step 4 — Check it took
 
 ```
 /plugin
 ```
 
-You should see **reel-studio** in the list, enabled. That is it — you are ready.
+You should see **reel-studio** in the list, enabled. Typing `/reel` should now offer the reel
+commands. That is it — you are ready.
 
 ---
 
@@ -377,13 +434,25 @@ skills/reel-studio/
 git add -A && git commit -m "..." && git push
 ```
 
-Team members pick it up by opening `/plugin` and updating the **waivs-marketing**
+Team members pick it up by opening `/plugin` and updating the **healthlytics**
 marketplace from there.
 
 ### Testing without publishing
 
-```bash
-/plugin marketplace add /absolute/path/to/claude-reel-studio
+```
+/plugin marketplace add /absolute/path/to/reels-studio
 ```
 
-A local path works the same as a GitHub repo, so you can try a change before pushing it.
+A local path works the same as a GitHub repo, so you can try a change before pushing it —
+and it skips the auth step entirely, which makes it the fastest way to check a change.
+
+### Onboarding someone new
+
+The repo being private means a new teammate cannot install the plugin until they are in the
+`healthlyticsai` org. Add them there first, then send them at step 1 of
+[Installation](#installation). The failure mode if you skip it is unhelpful: GitHub returns
+`Repository not found` for a private repo you cannot see, which reads like the repo is
+missing rather than like a permissions problem.
+
+If the org ever switches this repo to public, steps 1 and its `git ls-remote` check drop
+away and the two `/plugin` commands work on their own.
