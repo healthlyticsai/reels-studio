@@ -144,6 +144,15 @@ md.push("");
 
 fs.writeFileSync(path.join(project, "PLAN.md"), md.join("\n"));
 
-console.log(`\nWrote ${path.join(project, "PLAN.md")}`);
-console.log(`Wrote ${path.join(project, "plan.json")}`);
-console.log(`\n${plan.scenes.length} scenes · ${plan.assetManifest?.length ?? 0} assets · ${plan.voiceover.wordCount} words of VO`);
+console.log(`Wrote ${path.join(project, "PLAN.md")}`);
+console.log(`Wrote ${path.join(project, "plan.json")}\n`);
+
+// Print the storyboard straight away. The person has to approve this before
+// recording anything, so it belongs in the conversation, not in a file they
+// have to be told to go and open.
+const { execFileSync } = await import("child_process");
+execFileSync(
+  process.execPath,
+  [path.join(import.meta.dirname, "storyboard.mjs"), project],
+  { stdio: "inherit" },
+);

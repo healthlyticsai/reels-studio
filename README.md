@@ -265,37 +265,61 @@ In Claude Code, in whatever folder you want the reel to live, just say what you 
 Add anything you know that would shape it — who it is for, what it should be positioned
 against, an unusual length. More on that in [Writing a good topic](#writing-a-good-topic).
 
-Claude creates a folder named after the topic, then asks Gemini for the plan. **This takes
-about a minute.**
+Claude creates a folder named after the topic, then asks Gemini for the plan and prints the
+full storyboard. **This takes about a minute.**
 
 ### 2. Read the plan
 
-Claude will show you the narrative arc and the full voiceover script. You will get something
-like this:
+Claude shows you the **whole storyboard** — not a summary. You get:
 
-> **One-Click Referrals**
-> *Stop retyping patient histories; Waivs Scribe turns your encounter note into a specialist
-> referral with one click.*
->
-> **Voiceover script (172 words)**
-> "You just finished a complex patient encounter. Now you have to write the referral. In
-> OSCAR, that usually means opening a new template and typing everything all over again…"
+- The **voiceover script**, word for word, with delivery notes
+- **Every scene** shot by shot: its kicker and headline, which word carries the marker
+  emphasis, what moves on which spoken words, which photos it uses, where things sit in frame
+- The **cut** between each pair of scenes and why it was chosen
+- What **artwork** gets generated and how many **sound cues** there are
+- How the reel **ends** — the closing line, the button, the URL
+- Anything **flagged for review** — Gemini calls out claims that might overreach or need
+  legal eyes
 
-**This is your cheap moment to redirect.** Changing the script now costs one minute. Changing
+It looks like this:
+
+```
+  1. The Worst Part   0s–10s   (dark background)
+
+     kicker    POST-VISIT GRIND
+     headline  The worst part   [strike on "worst"]
+
+     shots
+       on "open OSCAR"
+         LegacyChart slides in from the bottom, looking drab and utilitarian.
+       on "Billing"
+         SlamWord 'BILLING' takes over the screen with a harsh zoom.
+
+     art       doctor-rubbing-eyes
+     layout    Cutout of exhausted doctor sits bottom-right. Keep bottom
+               300px clear for captions.
+
+        ↓  tornPaper — Rips away to reveal the underlying financial reality.
+```
+
+It ends with the two audio files it needs from you, so the plan and the ask arrive together.
+
+**This is your cheap moment to redirect.** Changing the script now costs a minute. Changing
 it after you have recorded the voiceover costs you a re-record. Read it properly.
 
 If you want changes, just say so in plain language:
 
 > the opening is too gentle — lead with the number of hours lost
 
-> drop the bit about blood pressure readings, legal will not like it
+> drop scene 4, it repeats scene 2
+
+> legal will not like "capture your full revenue" — soften it
 
 > make it 45 seconds instead
 
-Claude will regenerate or edit the plan. The full plan also lands in **`PLAN.md`** inside the
-new folder if you would rather read it there — it has the scene-by-scene breakdown, the
-sound cues, and a **Flagged for review** section listing anything that might need a second
-opinion before it goes out.
+Claude will regenerate or edit the plan and re-print the storyboard. The same detail is also
+written to **`PLAN.md`** in the new folder if you would rather read it there or send it to
+someone for sign-off.
 
 ### 3. Record the voiceover and pick music
 

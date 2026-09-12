@@ -33,25 +33,37 @@ SKILL_DIR="${CLAUDE_PLUGIN_ROOT}/skills/reel-studio"
    existing folder — if the slug is taken, ask whether to revise that reel instead.
 3. Brief: `node "$SKILL_DIR/scripts/brief.mjs" --topic "..." --notes "..." --project ./<slug>`
 
-**Then read `PLAN.md` yourself and summarise it back**
+**Then show them the whole plan**
 
-This is the part that matters. Show the person:
+`brief.mjs` finishes by printing a storyboard digest: the voiceover script verbatim, every
+scene shot by shot with its headline and the words each beat lands on, the cuts between
+scenes, the artwork to be generated, anything flagged for review, and the two audio files
+you need back.
 
-- The narrative arc in a few lines — what the reel argues, scene by scene.
-- **The full voiceover script, verbatim.** Do not paraphrase it or show an excerpt. They are
-  about to record this.
-- Anything in the plan's **Flagged for review** section, called out plainly.
+**Relay that digest in full.** Do not compress it to a summary, and do not tell them to open
+`PLAN.md` instead. They are approving a storyboard and then going away to record a voiceover
+from it — a one-line arc is not enough to judge whether scene 3 earns its place. The digest
+is already shaped for reading, so pass it through rather than rewriting it.
 
-Then say explicitly that this is the cheap moment to change it: a script edit now costs a
-minute, the same edit after recording costs them a re-record. Invite specific changes.
+Read `PLAN.md` yourself too, and add anything worth weighing that the digest leaves out — a
+claim that overreaches, a scene doing too little work, a script that will run long.
 
-If they want changes, rerun `brief.mjs` with `--notes` capturing the correction for anything
-structural, or edit `PLAN.md` and `plan.json` together for small tweaks. Keep the two in
-sync — the build scripts read the JSON.
+Then say plainly that this is the cheap moment to change it: an edit now costs a rerun, the
+same edit after recording costs a re-record. Invite specific changes.
+
+If a tool for publishing a shareable page or document is available, offer in one line to put
+the plan up as one — storyboards usually need sign-off from someone outside this
+conversation. Do not build it unless they say yes.
+
+If they want changes, rerun `brief.mjs` with `--notes` for anything structural, or edit
+`PLAN.md` and `plan.json` together for small tweaks — keep the two in sync, the build scripts
+read the JSON. Re-print after a rerun with
+`node "$SKILL_DIR/scripts/storyboard.mjs" ./<slug>`.
 
 **Then stop**
 
-Tell them exactly what you need back and where it goes:
+The digest already ends with the two files and their paths, but restate the ask in your own
+closing line so it is not buried at the bottom of a long message:
 
 - Voiceover → `<slug>/assets/audio/vo.mp3`, read from the script above. Any length — the reel
   is cut to fit whatever arrives, so they should not trim to hit a target duration.

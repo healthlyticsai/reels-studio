@@ -87,20 +87,40 @@ manifest, an SFX map and per-scene layout notes. It writes `PLAN.md` (for humans
 Pass extra context with `--notes "..."` when the person has given you product details,
 a target audience, a competitor to position against, or a length other than ~60s.
 
-**3. Read `PLAN.md` yourself, then summarise it for the person.** Show them the narrative
-arc in a few lines and the full voiceover script verbatim. This is their last cheap chance
-to redirect — a bad script caught here costs a rerun of `brief.mjs`; caught after the VO is
-recorded it costs them a re-record. Invite edits explicitly.
+**3. Show them the whole plan.**
 
-If they want changes, either rerun `brief.mjs` with `--notes` capturing the correction, or
-edit `PLAN.md` and `plan.json` directly for small tweaks. Keep the two in sync — the scripts
-read the JSON.
+`brief.mjs` ends by printing a storyboard digest — the voiceover script verbatim, then every
+scene shot by shot with its headline, its beats and the words each one lands on, the cuts
+between them, the artwork to be generated, anything flagged for review, and the two audio
+files you need back. Relay that to the person **in full**, in the conversation.
+
+Do not compress it to a summary and do not point them at `PLAN.md` instead. They are being
+asked to approve a storyboard and then go and record a voiceover off the back of it; they
+cannot judge whether scene 3 earns its place from a one-line arc. The digest is already
+shaped for reading — pass it through rather than rewriting it.
+
+Read `PLAN.md` yourself as well, and add anything the digest leaves out that you think they
+should weigh — a claim that overreaches, a scene doing too little, a script that runs long.
+
+Then say plainly that this is the cheap moment to redirect: a change now costs a rerun of
+`brief.mjs`, the same change after recording costs them a re-record. Invite specific edits.
+
+If a tool for publishing a shareable page or document is available in this session, offer to
+put the plan up as one — a storyboard usually needs sign-off from someone who is not in this
+conversation. Offer it in one line; do not build it unless they say yes.
+
+If they want changes, rerun `brief.mjs` with `--notes` capturing the correction for anything
+structural, or edit `PLAN.md` and `plan.json` together for small tweaks. Keep the two in sync
+— the build scripts read the JSON. Re-print the storyboard after a rerun:
+`node "$SKILL_DIR/scripts/storyboard.mjs" ./<topic-slug>`
 
 ## Phase 2 — Hand-off (stop here)
 
-Tell them, in plain terms, exactly what you need back and where to put it:
+The storyboard digest ends with the two files you need and where they go, so the ask has
+already been made alongside the plan. Restate it in your own closing line so it does not get
+lost at the bottom of a long message:
 
-- **Voiceover** → `<topic-slug>/assets/audio/vo.mp3` — read from the script in `PLAN.md`.
+- **Voiceover** → `<topic-slug>/assets/audio/vo.mp3` — read from the script above.
   ElevenLabs, Play.ht or a real human all work. Any length; the reel is cut to fit whatever
   arrives, so they should not try to hit a target duration.
 - **Background music** → `<topic-slug>/assets/audio/bg.mp3` — instrumental, no vocals
