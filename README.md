@@ -28,7 +28,8 @@ narration rather than laid over it.
 
 ## Table of contents
 
-- [Installation](#installation)
+- [Installation — Claude Code](#installation--claude-code)
+- [Installation — GitHub Copilot](#installation--github-copilot)
 - [Making your first reel](#making-your-first-reel)
 - [Command reference](#command-reference)
 - [Writing a good topic](#writing-a-good-topic)
@@ -41,7 +42,10 @@ narration rather than laid over it.
 
 ---
 
-## Installation
+## Installation — Claude Code
+
+Using GitHub Copilot instead? Skip to
+[Installation — GitHub Copilot](#installation--github-copilot).
 
 You need this once per computer. Budget fifteen minutes, most of it getting two
 credentials in place.
@@ -50,7 +54,7 @@ credentials in place.
 
 | | Why | How to check |
 |---|---|---|
-| **Claude Code** | Runs the skill | `claude --version` |
+| **Claude Code or GitHub Copilot** | Runs the skill | `claude --version` |
 | **Node 20 or newer** | Everything — video, images, transcription | `node --version` |
 | **Access to the private repo** | The plugin is fetched from GitHub | see step 1 |
 | **A Gemini API key** | Writing the plan and generating the artwork | see step 2 |
@@ -172,6 +176,84 @@ commands. That is it — you are ready.
 
 ---
 
+## Installation — GitHub Copilot
+
+Reel Studio works in Copilot too. Skills are an open standard shared between Copilot and
+Claude Code, so the skill itself is the same file — only the way it gets installed differs,
+because Copilot has no plugin marketplace.
+
+Steps 1 and 2 from the Claude Code section still apply: you need
+[repo access](#step-1--get-access-to-the-repo) and a
+[Gemini API key](#step-2--get-a-gemini-api-key). Do those first, then:
+
+### Clone the repo
+
+Put it somewhere permanent — the install points at this folder rather than copying it, so
+`git pull` here updates the skill everywhere.
+
+```bash
+git clone https://github.com/healthlyticsai/reels-studio.git ~/reels-studio
+```
+
+### Run the installer
+
+```bash
+bash ~/reels-studio/skills/reel-studio/scripts/install-copilot.sh
+```
+
+It writes into `~/.copilot/skills/`, which Copilot reads in every workspace. You should see:
+
+```
+linked   ~/.copilot/skills/reel-studio -> ~/reels-studio/skills/reel-studio
+wrote    ~/.copilot/skills/reel/SKILL.md
+wrote    ~/.copilot/skills/reel-build/SKILL.md
+...
+```
+
+### Restart Copilot and check
+
+Type `/` in the Copilot chat box. You should see **/reel**, **/reel-build**, **/reel-assets**,
+**/reel-check**, **/reel-render** and **/reel-revise** in the list.
+
+From there it works exactly as it does in Claude Code — same commands, same three phases, same
+output. Jump to [Making your first reel](#making-your-first-reel).
+
+### Options
+
+```bash
+# Copy instead of symlinking, so the install survives moving or deleting the clone.
+# Trade-off: updates then need re-running the installer.
+bash ~/reels-studio/skills/reel-studio/scripts/install-copilot.sh --copy
+
+# Install to the vendor-neutral folder other agents also read.
+bash ~/reels-studio/skills/reel-studio/scripts/install-copilot.sh --target ~/.agents/skills
+
+# Remove it.
+bash ~/reels-studio/skills/reel-studio/scripts/install-copilot.sh --uninstall
+```
+
+### Updating
+
+With the default symlink install, `git pull` is the whole update:
+
+```bash
+cd ~/reels-studio && git pull
+```
+
+Re-run the installer only if the set of commands has changed — those are generated files, not
+symlinks.
+
+### Why there is an installer at all
+
+Copilot reads the skill format directly, so `skills/reel-studio/SKILL.md` needs no
+translation. The six slash commands do: Claude Code reads them from `commands/*.md`, which
+Copilot does not look at. The installer rewrites each one as a sibling skill — adding the
+`name` field Copilot requires, and replacing Claude Code's `$ARGUMENTS` placeholder, which
+Copilot has no equivalent for since whatever you type after the command is already in the
+conversation.
+
+---
+
 ## Making your first reel
 
 ### 1. Ask for it
@@ -258,8 +340,8 @@ mp4 when it is done, along with a note of anything it changed from the plan.
 
 ## Command reference
 
-You never have to use these — describing what you want in plain language works just as well,
-and Claude picks the right step. They are here for when you would rather type a command than
+They work the same in Claude Code and Copilot. You never have to use them — describing what
+you want in plain language works just as well, and the agent picks the right step. They are here for when you would rather type a command than
 a sentence, and because typing `/reel` shows you the whole set.
 
 | Command | What it does |
@@ -408,6 +490,7 @@ skills/reel-studio/
   SKILL.md               the workflow Claude follows
   references/            playbook, component API, the Gemini brief, troubleshooting
   scripts/               brief, scaffold, asset generation, matting, transcription
+                         plus install-copilot.sh, which mirrors the commands as skills
   assets/
     brand/               brand.config.json
     logo/  sfx/  art/    brand logos, six sound effects, transition furniture
@@ -427,6 +510,14 @@ skills/reel-studio/
   derived from.
 - **`assets/template/src/components/`** is the shared kit — typography with animated emphasis
   marks, four scene transitions, motion-graphics devices, captions, texture.
+
+### Two hosts, one source
+
+`skills/reel-studio/` is the open Agent Skills format, which Claude Code and Copilot both
+read unchanged. Only the slash commands diverge: Claude Code loads `commands/*.md` from the
+plugin, and `scripts/install-copilot.sh` regenerates those as sibling skills under
+`~/.copilot/skills/`. Edit `commands/*.md` as the single source — Copilot users pick the
+change up by re-running the installer.
 
 ### Publishing a change
 
@@ -450,7 +541,8 @@ and it skips the auth step entirely, which makes it the fastest way to check a c
 
 The repo being private means a new teammate cannot install the plugin until they are in the
 `healthlyticsai` org. Add them there first, then send them at step 1 of
-[Installation](#installation). The failure mode if you skip it is unhelpful: GitHub returns
+[Installation — Claude Code](#installation--claude-code), or the
+[Copilot section](#installation--github-copilot) if that is what they use. The failure mode if you skip it is unhelpful: GitHub returns
 `Repository not found` for a private repo you cannot see, which reads like the repo is
 missing rather than like a permissions problem.
 

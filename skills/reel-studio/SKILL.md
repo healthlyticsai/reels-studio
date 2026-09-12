@@ -19,9 +19,10 @@ that everything else is cut to — there is no point building animation before i
 
 ## Slash commands
 
-Each phase has a command, so a team member never has to remember the script names. They all
-load this skill and follow the phase below; use them when the person invokes one, and follow
-this file directly otherwise.
+Each phase has a slash command, so a team member never has to remember the script names.
+In Claude Code they ship as plugin commands; under GitHub Copilot the installer writes them
+as sibling skills. Either way they load this skill and follow the phase below — use them when
+the person invokes one, and follow this file directly otherwise.
 
 | Command | Covers |
 |---|---|
@@ -34,12 +35,18 @@ this file directly otherwise.
 
 ## Before you start
 
-Set `SKILL_DIR` once — every command below uses it. When installed as a plugin, Claude Code
-exports `CLAUDE_PLUGIN_ROOT`; otherwise use the path this SKILL.md was loaded from.
+Set `SKILL_DIR` once — every command below uses it. It is the folder holding this SKILL.md,
+which differs by host:
 
 ```bash
-SKILL_DIR="${CLAUDE_PLUGIN_ROOT:-<path to this skill>}/skills/reel-studio"
+# Claude Code, installed as a plugin
+SKILL_DIR="${CLAUDE_PLUGIN_ROOT}/skills/reel-studio"
+
+# GitHub Copilot, or any agent reading the open skills folders
+SKILL_DIR="$HOME/.copilot/skills/reel-studio"
 ```
+
+If neither resolves, find it: `ls -d ~/.copilot/skills/reel-studio ~/.claude/plugins/cache/*/reel-studio/*/skills/reel-studio 2>/dev/null | head -1`
 
 Then check the Gemini key. It is read from the environment first, then a `.env` in the
 project, then a `.env` at the plugin root.
@@ -133,7 +140,7 @@ word-level timestamps, and prints a sentence-by-sentence table of start/end time
 an estimate written before the VO existed; the transcript is ground truth. Map each scene to
 the sentence group that carries it and write the real frame numbers into `src/timing.ts`.
 Anchor individual beats — a highlight sweep, a card entrance, a stamp — to the frame of the
-specific word they land on. `references/production-playbook.md` explains the arithmetic,
+specific word they land on. [the production playbook](./references/production-playbook.md) explains the arithmetic,
 including how transition overlap affects scene durations.
 
 **3. Generate and matte the artwork.**
@@ -147,7 +154,7 @@ Gemini cannot emit an alpha channel — it returns JPEG and will paint a fake ch
 you ask for transparency. The prompts therefore request a flat magenta backdrop that
 `matte.mjs` keys out. Flat single-colour shapes (ink blots, silhouettes) need
 `matte-ink.mjs` instead, which builds alpha from luminance so anti-aliased edges do not keep
-a magenta fringe. Details in `references/production-playbook.md`.
+a magenta fringe. Details in [the production playbook](./references/production-playbook.md).
 
 Inspect what came back before building on it — a contact sheet over a loud colour makes bad
 mattes obvious immediately:
@@ -163,13 +170,13 @@ Then Read that PNG. Regenerate any asset that came back wrong:
 
 **4. Write the scenes.** One file per scene in `src/scenes/`, composed from the bundled
 component kit — do not rebuild typography, transitions or motion graphics from scratch, they
-are already written and battle-tested. `references/component-kit.md` is the API reference.
+are already written and battle-tested. [The component kit reference](./references/component-kit.md) is the API.
 
 The kit gives you: `Headline`/`Eyebrow`/`Deck`/`SlamWord`/`CountUp` with five animated
 emphasis marks, four scene transitions, `RippleRings`/`ScanBeam`/`TickerStrip`/`BarCompare`/
 `Confetti`/`StatChip`/`Motes`, texture overlays, a browser frame, and burned-in captions.
 
-`references/production-playbook.md` carries the craft rules that are easy to get wrong and
+[The production playbook](./references/production-playbook.md) carries the craft rules that are easy to get wrong and
 expensive to discover late — caption safe zones, headline width arithmetic, the sentence-case
 typography policy, sound-design levels, and the transition timing math. Read it before
 writing the first scene.
@@ -210,8 +217,9 @@ message itself is changing, and re-record the VO only if the script changes.
 
 ## Reference files
 
-- `references/production-playbook.md` — the craft rules and the failure modes worth knowing
-  in advance. Read this before writing scenes.
-- `references/component-kit.md` — API for every bundled component.
-- `references/gemini-brief-prompt.md` — the brief sent to Gemini. Edit to change house style.
-- `references/troubleshooting.md` — known breakages and their fixes.
+- [Production playbook](./references/production-playbook.md) — the craft rules and the
+  failure modes worth knowing in advance. Read this before writing scenes.
+- [Component kit](./references/component-kit.md) — API for every bundled component.
+- [Gemini brief prompt](./references/gemini-brief-prompt.md) — the brief sent to Gemini.
+  Edit to change house style.
+- [Troubleshooting](./references/troubleshooting.md) — known breakages and their fixes.
