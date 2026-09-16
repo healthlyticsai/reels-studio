@@ -21,6 +21,15 @@ PLUGIN_ROOT="$(cd "$SKILL_DIR/../.." && pwd)"
 TARGET="$HOME/.copilot/skills"
 MODE="link"
 ACTION="install"
+PROMPTS="auto"
+
+# VS Code reads slash commands from prompt files, not from ~/.copilot/skills.
+# Older Copilot Chat builds cannot see skills at all, so we mirror the commands
+# there too. Harmless on new builds; essential on old ones.
+case "$(uname -s)" in
+  Darwin) PROMPT_DIR="$HOME/Library/Application Support/Code/User/prompts" ;;
+  *)      PROMPT_DIR="$HOME/.config/Code/User/prompts" ;;
+esac
 
 while [ $# -gt 0 ]; do
   case "$1" in
@@ -28,6 +37,8 @@ while [ $# -gt 0 ]; do
     --link) MODE="link"; shift ;;
     --target) TARGET="${2/#\~/$HOME}"; shift 2 ;;
     --uninstall) ACTION="uninstall"; shift ;;
+    --no-prompts) PROMPTS="no"; shift ;;
+    --prompt-dir) PROMPT_DIR="${2/#\~/$HOME}"; shift 2 ;;
     *) echo "Unknown option: $1" >&2; exit 1 ;;
   esac
 done
@@ -39,6 +50,12 @@ if [ "$ACTION" = "uninstall" ]; then
     if [ -e "$TARGET/$name" ] || [ -L "$TARGET/$name" ]; then
       rm -rf "$TARGET/$name"
       echo "removed  $TARGET/$name"
+    fi
+  done
+  for name in "${COMMANDS[@]}"; do
+    if [ -f "$PROMPT_DIR/$name.prompt.md" ]; then
+      rm -f "$PROMPT_DIR/$name.prompt.md"
+      echo "removed  $PROMPT_DIR/$name.prompt.md"
     fi
   done
   echo
@@ -108,8 +125,40 @@ PY
   echo "wrote    $dest/SKILL.md"
 done
 
+# ââ The commands, mirrored as VS Code prompt files âââââââââââââââââââ
+# VS Code Chat builds its / menu from *.prompt.md, and older Copilot Chat
+# builds ignore ~/.copilot/skills entirely. These thin files just load the
+# real SKILL.md, so there is no duplicated logic to keep in sync.
+if [ "$PROMPTS" != "no" ]; then
+  mkdir -p "$PROMPT_DIR"
+  for name in "${COMMANDS[@]}"; do
+    src="$PLUGIN_ROOT/commands/$name.md"
+    [ -f "$src" ] || continue
+    desc="$(sed -n 's/^description: *//p' "$src" | head -1)"
+    cat > "$PROMPT_DIR/$name.prompt.md" <<EOF
+---
+mode: agent
+description: $desc
+---
+Read \`$TARGET/$name/SKILL.md\` and follow it exactly.
+
+It will direct you to the \`reel-studio\` skill at \`$TARGET/reel-studio\`; read that
+SKILL.md too, along with any reference files it points you to, and follow the phase it names.
+
+Whatever the user typed after the slash command is their request. If they typed nothing and
+the command needs input, ask for it before doing any work.
+EOF
+    echo "wrote    $PROMPT_DIR/$name.prompt.md"
+  done
+fi
+
 echo
 echo "Installed into $TARGET"
 echo "  /reel  /reel-build  /reel-assets  /reel-check  /reel-render  /reel-revise"
+if [ "$PROMPTS" != "no" ]; then
+  echo "Also mirrored as VS Code prompt files in:"
+  echo "  $PROMPT_DIR"
+fi
 echo
-echo "Restart Copilot, then type / in the chat box to see them."
+echo "Now quit VS Code completely and reopen it (a window reload is not always enough),"
+echo "then type / in the Copilot chat box to see them."
