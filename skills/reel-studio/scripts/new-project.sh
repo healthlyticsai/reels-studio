@@ -30,7 +30,7 @@ npx --yes create-video@latest --yes --blank --no-tailwind "$SLUG" >/dev/null
 cd "$SLUG"
 rm -f src/Composition.tsx
 
-mkdir -p assets/audio public/art public/sfx public/logo scripts src/components src/scenes out
+mkdir -p assets/audio public/art public/sfx public/logo scripts references src/components src/scenes out
 
 cp -R "$SKILL_DIR/assets/template/src/." src/
 cp "$BRAND" brand.config.json
@@ -42,10 +42,14 @@ cp -R "$SKILL_DIR/assets/sfx/." public/sfx/ 2>/dev/null || true
 # regenerated per reel.
 cp -R "$SKILL_DIR/assets/art/." public/art/ 2>/dev/null || true
 
-# Per-project copies so the project stays runnable after the skill is uninstalled.
-for f in generate-assets.mjs matte.mjs matte-ink.mjs transcribe.mjs contact-sheet.mjs check-audio.mjs storyboard.mjs env.mjs; do
+# Per-project copies so the project stays runnable after the skill is uninstalled — and so a
+# restyle later can redraw the direction from inside the folder. direction.mjs resolves the
+# catalog relative to its own parent, which is why creative-systems.json comes along.
+for f in generate-assets.mjs matte.mjs matte-ink.mjs transcribe.mjs contact-sheet.mjs \
+         check-audio.mjs storyboard.mjs direction.mjs research.mjs gemini.mjs env.mjs; do
   cp "$SKILL_DIR/scripts/$f" scripts/
 done
+cp "$SKILL_DIR/references/creative-systems.json" references/
 
 cat > .gitignore <<'GI'
 node_modules/
@@ -102,6 +106,8 @@ fs.writeFileSync('package.json', JSON.stringify(p, null, 2));
 echo
 echo "Created ./$SLUG"
 echo "  assets/audio/   <- voiceover and music go here"
+echo "  direction.json  <- the look drawn for this reel (written by brief.mjs)"
+echo "  src/look.ts     <- copy the backdrop, camera and type anims here before building"
 echo "  src/components/ <- the component kit (already written, compose from it)"
 echo "  src/scenes/     <- write one file per scene here"
 echo

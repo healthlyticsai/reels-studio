@@ -233,8 +233,85 @@ const gradientText = {
 } as const;
 
 /**
- * A headline line. Words punch in one at a time; each segment can carry its
- * own animated emphasis mark.
+ * How the words arrive. The direction drawn for the reel picks one, and adjacent
+ * scenes must not share it — a reel where every line enters the same way is the
+ * clearest sign it came off a template.
+ */
+export type HeadlineAnim =
+  | "punch"
+  | "riseMask"
+  | "blurIn"
+  | "cascade"
+  | "elastic"
+  | "rollUp"
+  | "flip"
+  | "drift";
+
+/** Per-word entrance, given the word's local frame and its spring value. */
+const wordEntrance = (
+  anim: HeadlineAnim,
+  local: number,
+  enter: number,
+  size: number,
+): React.CSSProperties => {
+  const clamp = { extrapolateLeft: "clamp", extrapolateRight: "clamp" } as const;
+  const fade = interpolate(local, [0, 5], [0, 1], clamp);
+
+  switch (anim) {
+    case "riseMask":
+      // The clip is on the wrapper; the word just travels up through it.
+      return {
+        opacity: local >= 0 ? 1 : 0,
+        translate: `0px ${interpolate(enter, [0, 1], [size * 1.1, 0], clamp)}px`,
+      };
+    case "blurIn":
+      return {
+        opacity: fade,
+        filter: `blur(${interpolate(local, [0, 9], [16, 0], { ...clamp, easing: Easing.out(Easing.quad) })}px)`,
+        scale: interpolate(enter, [0, 1], [1.12, 1], { ...clamp, output: "perceptual-scale" }),
+      };
+    case "cascade":
+      return {
+        opacity: fade,
+        translate: `0px ${interpolate(enter, [0, 1], [-size * 0.5, 0], clamp)}px`,
+        rotate: `${interpolate(enter, [0, 1], [-7, 0], clamp)}deg`,
+      };
+    case "elastic":
+      return {
+        opacity: interpolate(local, [0, 2], [0, 1], clamp),
+        scale: interpolate(enter, [0, 1], [1.7, 1], { ...clamp, output: "perceptual-scale" }),
+      };
+    case "rollUp":
+      return {
+        opacity: local >= 0 ? 1 : 0,
+        translate: `0px ${interpolate(enter, [0, 1], [size * 0.95, 0], clamp)}px`,
+        rotate: `${interpolate(enter, [0, 1], [8, 0], clamp)}deg`,
+      };
+    case "flip":
+      return {
+        opacity: fade,
+        transform: `perspective(900px) rotateX(${interpolate(enter, [0, 1], [-88, 0], clamp)}deg)`,
+        transformOrigin: "50% 100%",
+      };
+    case "drift":
+      return {
+        opacity: interpolate(local, [0, 14], [0, 1], clamp),
+        translate: `${interpolate(enter, [0, 1], [-26, 0], clamp)}px 0px`,
+        filter: `blur(${interpolate(local, [0, 12], [6, 0], clamp)}px)`,
+      };
+    case "punch":
+    default:
+      return {
+        opacity: fade,
+        scale: interpolate(enter, [0, 1], [0.6, 1], { ...clamp, output: "perceptual-scale" }),
+        translate: `0px ${interpolate(enter, [0, 1], [30, 0], clamp)}px`,
+      };
+  }
+};
+
+/**
+ * A headline line. Words arrive one at a time in whichever manner `anim` names;
+ * each segment can carry its own animated emphasis mark.
  */
 export const Headline: React.FC<{
   segments: Segment[];
@@ -245,6 +322,7 @@ export const Headline: React.FC<{
   color?: string;
   align?: React.CSSProperties["justifyContent"];
   nowrap?: boolean;
+  anim?: HeadlineAnim;
   style?: React.CSSProperties;
 }> = ({
   segments,
@@ -255,6 +333,7 @@ export const Headline: React.FC<{
   color = COLORS.slate,
   align = "center",
   nowrap = true,
+  anim = "punch",
   style,
 }) => {
   const frame = useCurrentFrame();
@@ -293,29 +372,29 @@ export const Headline: React.FC<{
             const local = frame - delay - wordIndex++ * stagger;
             const enter = spring({ frame: local, fps, config: SPRING.punch });
 
+            const clipped = anim === "riseMask" || anim === "rollUp";
+
             return (
               <span
                 key={`${word}-${wordIndex}`}
                 style={{
                   display: "inline-block",
-                  opacity: interpolate(local, [0, 5], [0, 1], {
-                    extrapolateLeft: "clamp",
-                    extrapolateRight: "clamp",
-                  }),
-                  scale: interpolate(enter, [0, 1], [0.6, 1], {
-                    extrapolateLeft: "clamp",
-                    extrapolateRight: "clamp",
-                    output: "perceptual-scale",
-                  }),
-                  translate: `0px ${interpolate(enter, [0, 1], [30, 0], {
-                    extrapolateLeft: "clamp",
-                    extrapolateRight: "clamp",
-                  })}px`,
-                  textTransform: segment.caps ? "uppercase" : "none",
-                  ...(segment.gradient ? gradientText : { color: segment.color ?? color }),
+                  // Only the masked entrances need a clip, and clipping the rest
+                  // would cut the descenders off every headline in the reel.
+                  overflow: clipped ? "hidden" : "visible",
+                  paddingBottom: clipped ? size * 0.16 : 0,
                 }}
               >
-                {word}
+                <span
+                  style={{
+                    display: "inline-block",
+                    ...wordEntrance(anim, local, enter, size),
+                    textTransform: segment.caps ? "uppercase" : "none",
+                    ...(segment.gradient ? gradientText : { color: segment.color ?? color }),
+                  }}
+                >
+                  {word}
+                </span>
               </span>
             );
           })}

@@ -15,6 +15,7 @@ and expensive to discover after a render. Read this before writing the first sce
 8. [Sound design levels](#8-sound-design-levels)
 9. [Animation conventions](#9-animation-conventions)
 10. [The review loop](#10-the-review-loop)
+11. [The variation system](#11-the-variation-system)
 
 ---
 
@@ -186,7 +187,12 @@ Everything is driven by `useCurrentFrame()`.
 - Use `spring()` for anything that enters — cards, pills, words. The kit's `SPRING` presets
   cover the four useful characters: `punch`, `card`, `snap`, `soft`.
 - Give every scene one slow continuous move — a 5% push, a tilt easing from 12° to 3°, a
-  drift. A scene where only the foreground animates reads as a slideshow.
+  drift. `<CameraMove>` does this from the reel's camera language; a scene where only the
+  foreground animates reads as a slideshow.
+- SVG's own `<animateMotion>`, `<animate>` and CSS keyframes are SMIL and CSS clocks. They
+  never advance under a frame-by-frame renderer, so anything driven by them silently renders
+  as its first frame. Compute the position instead — `@remotion/paths` gives you
+  `getPointAtLength` for travelling along a path.
 - Use Remotion's `random(seed)` rather than `Math.random()`, so a frame renders identically
   every time. A non-deterministic frame flickers in the final video.
 
@@ -212,3 +218,65 @@ node scripts/contact-sheet.mjs --video out/reel.mp4 /tmp/final.png
 Both bugs found in the reel this skill was built from — a supporting line colliding with a
 card label, and a stat row sitting under a headline — were invisible in code, invisible in
 the scenes read individually, and immediately obvious in the contact sheet.
+
+## 11. The variation system
+
+The failure mode this system exists to prevent is subtler than a bug: every reel comes out
+competent, on-brand, and indistinguishable from the last one. Nobody reports it, and three
+reels in, the feed looks like a template.
+
+So the look is **drawn, not chosen**. `scripts/direction.mjs` picks an art direction, a
+narrative arc, an opening gambit, an edit language, four kinetic type systems, three motion
+motifs and a camera language out of `references/creative-systems.json`, holding out whatever
+the last few reels on this machine used. It lands in `direction.json` at the project root.
+
+**Read `direction.json` before writing a single scene.** It is not a mood board; it is the
+spec. Four things follow from it mechanically:
+
+1. **`src/look.ts`** carries the backdrop variant, the camera mode and the per-scene type
+   anim. Fill it in first, from `direction.json` and the plan, and every scene reads from it.
+2. **Every scene opens with `<Backdrop variant={BACKDROP} />`** and wraps its content in
+   `<CameraMove mode={CAMERA} duration={...}>`.
+3. **Transitions come from the art direction's cut palette**, not from habit. `tornPaper` is
+   the right cut for a paper-collage reel and the wrong one for a night-data reel.
+4. **No two adjacent scenes share a type animation.** The plan assigns each scene a
+   `typeSystem`; `look.ts` maps it to a `Headline` `anim` or to a `KineticType` component.
+   This is the single most visible rule — a reel that punches every headline in identically
+   reads as a template no matter how good the writing is.
+
+### Assets are the other half
+
+A four-asset manifest is the other reason reels converge: the same three stock-ish cutouts
+carry every scene. The brief asks for **at least twelve, aiming at fourteen to eighteen**,
+spread across cutout people, real props, textures, an environment plate and flat symbols —
+and every one traceable to something in `research.json`.
+
+`generate-assets.mjs` appends the art direction's own `imageDirection` to every prompt, so
+the same written prompt yields a risograph print in one reel and a low-key night photograph
+in the next. Asset prompts in the plan therefore describe **the subject only** — never the
+background, the grade or the cutout treatment.
+
+Kinds route differently through matting:
+
+| `kind` | Rendered against | Matted by |
+|---|---|---|
+| `cutout`, `prop` | magenta chroma | `matte.mjs` |
+| `texture`, `environment` | full bleed | nothing — they stay opaque |
+| `symbol` | white | `matte-ink.mjs`, from luminance |
+
+`matte.mjs` reads the manifest and routes all three automatically, so `node scripts/matte.mjs`
+with no arguments is still the whole step.
+
+### Overriding a draw
+
+The draw is a starting point, not a verdict. If the person wants a specific look:
+
+```bash
+node scripts/direction.mjs --project ./slug --list          # see every option
+node scripts/brief.mjs --topic "..." --project ./slug --art night-data --arc myth-bust
+node scripts/brief.mjs --topic "..." --project ./slug --redraw     # just draw again
+node scripts/brief.mjs --topic "..." --project ./slug --seed 8412  # reproduce a past look
+```
+
+The seed of every draw is printed in the storyboard and stored in `direction.json`, so a look
+someone liked can always be brought back.

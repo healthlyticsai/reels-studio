@@ -12,16 +12,21 @@ $ARGUMENTS
 **Do this**
 
 1. `cd` into the reel folder. With none given, use the most recent one with a `plan.json`.
-2. Generate. With no names, the whole manifest; with names, just those:
+2. Generate. With no names, the whole manifest; with names, just those; `--missing` for only
+   what is not on disk yet:
    ```bash
-   node scripts/generate-assets.mjs [name ...]
+   node scripts/generate-assets.mjs [name ...] [--missing]
    ```
-3. Key out the chroma backdrop:
+   It generates three at a time and appends the reel's own art direction from
+   `direction.json` to every prompt — so the manifest describes subjects and the direction
+   supplies the look. A manifest is twelve to eighteen assets; allow a few minutes.
+3. Matte:
    ```bash
    node scripts/matte.mjs [name.png ...]
    ```
-   Flat single-colour shapes — ink blots, silhouettes, solid graphics — fringe magenta when
-   chroma-keyed. Those use `node scripts/matte-ink.mjs <name>.png "#0F172A"` instead.
+   It reads the manifest and routes each kind: chroma key for `cutout` and `prop`, luminance
+   via `matte-ink.mjs` for flat `symbol` shapes (which fringe magenta if chroma-keyed), and
+   nothing at all for `texture` and `environment` plates, which are meant to stay opaque.
 4. Look at what came back:
    ```bash
    node scripts/contact-sheet.mjs public/art /tmp/contact.png
@@ -34,7 +39,8 @@ $ARGUMENTS
   one — there was nothing to key. Regenerate that asset. If it happens twice, make the
   backdrop instruction more emphatic in that asset's `prompt` in `plan.json`; it is competing
   with everything else the prompt is asking for.
-- **A magenta halo** on a flat shape means it needs `matte-ink.mjs`.
+- **A magenta halo** on a flat shape means its `kind` in the manifest is not `symbol`.
+  Fix the manifest rather than matting it by hand, or the next regeneration repeats it.
 - **A grey checkerboard baked into the image** means the prompt lost its chroma-key direction
   and the model painted a picture *of* transparency. Regenerate.
 

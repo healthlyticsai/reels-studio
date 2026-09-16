@@ -10,12 +10,28 @@ deliberate human checkpoint between phase 1 and phase 3, because the voiceover i
 that everything else is cut to — there is no point building animation before it exists.
 
 ```
-  Phase 1  topic ──▶ Gemini 3.1 Pro ──▶ PLAN.md + plan.json + VO script
+  Phase 1  topic ──▶ draw a creative direction ──┐
+                ──▶ research the topic  ─────────┴─▶ Gemini 3.1 Pro
+                                                        │
+                            PLAN.md + plan.json + direction.json + VO script
                                             │
   ══════════ HAND-OFF: human records VO, supplies music ══════════
                                             │
   Phase 3  transcribe VO ──▶ derive timeline ──▶ generate art ──▶ build scenes ──▶ render
 ```
+
+Two things happen before the brief is written, and they are the reason two reels on related
+topics do not come out looking like each other:
+
+- **The look is drawn, not chosen.** `direction.mjs` picks an art direction, a narrative arc,
+  an opening gambit, an edit language, four kinetic type systems, three motion motifs and a
+  camera language out of `references/creative-systems.json` — holding out whatever the last
+  few reels used. Fourteen art directions, twelve type systems, ten arcs; the combination is
+  effectively never repeated.
+- **The topic is researched.** `research.mjs` grounds it with real figures and, more
+  importantly for the film, the real objects, rooms and human moments of that world. The
+  twelve-to-eighteen asset manifest is built out of those rather than out of stock-photo
+  instincts.
 
 ## Slash commands
 
@@ -79,18 +95,35 @@ packages yet — that happens in phase 3, so the person is not left waiting duri
 node "$SKILL_DIR/scripts/brief.mjs" --topic "<the full topic>" --project "./<topic-slug>"
 ```
 
-This sends the prompt in `references/gemini-brief-prompt.md` — a long, specific brief that
-asks for a narrative arc, scene-by-scene beats, the exact voiceover script, an asset
-manifest, an SFX map and per-scene layout notes. It writes `PLAN.md` (for humans) and
-`plan.json` (for the scripts that follow) into the project.
+One command, three steps. It draws the creative direction (`direction.json`), researches the
+topic with web grounding (`research.json` + `RESEARCH.md`), then sends both, plus the brand
+and the prompt in `references/gemini-brief-prompt.md`, to Gemini. Out come `PLAN.md` for
+humans and `plan.json` for the scripts. Expect it to take a couple of minutes.
 
-Pass extra context with `--notes "..."` when the person has given you product details,
-a target audience, a competitor to position against, or a length other than ~60s.
+Pass extra context with `--notes "..."` whenever the person has given you product details, a
+target audience, a competitor to position against, or anything off-limits. It reaches both
+the research pass and the brief, so it is worth passing everything they said.
+
+Useful flags:
+
+| Flag | For |
+|---|---|
+| `--seconds 45` | A length other than ~60s |
+| `--redraw` | A different look, when they do not like the one drawn |
+| `--art <id>` / `--arc <id>` | A specific look or structure they asked for |
+| `--seed <n>` | Reproduce a look from an earlier reel exactly |
+| `--min-assets <n>` | Raise the asset floor above 12 |
+| `--no-research` | Skip grounding — only when there is no network or the topic is internal |
+
+`node "$SKILL_DIR/scripts/direction.mjs" --list` prints every art direction, arc, edit
+language, type system and motif by id, which is what to show someone who asks what the
+options are.
 
 **3. Show them the whole plan.**
 
-`brief.mjs` ends by printing a storyboard digest — the voiceover script verbatim, then every
-scene shot by shot with its headline, its beats and the words each one lands on, the cuts
+`brief.mjs` ends by printing a storyboard digest — the look drawn for this reel, what the
+research turned up, the voiceover script verbatim, then every scene shot by shot with its
+headline, its kinetic type treatment, its beats and the words each one lands on, the cuts
 between them, the artwork to be generated, anything flagged for review, and the two audio
 files you need back. Relay that to the person **in full**, in the conversation.
 
@@ -109,9 +142,17 @@ If a tool for publishing a shareable page or document is available in this sessi
 put the plan up as one — a storyboard usually needs sign-off from someone who is not in this
 conversation. Offer it in one line; do not build it unless they say yes.
 
-If they want changes, rerun `brief.mjs` with `--notes` capturing the correction for anything
-structural, or edit `PLAN.md` and `plan.json` together for small tweaks. Keep the two in sync
-— the build scripts read the JSON. Re-print the storyboard after a rerun:
+Call out the look explicitly when you relay it, because it is the part people do not expect
+to be asked about and the cheapest thing in the whole pipeline to change. If they want a
+different one, rerun with `--redraw`, or with `--art <id>` if they named a style. If they
+liked a previous reel's look, its seed is in that project's `direction.json` and `--seed <n>`
+brings it back.
+
+If they want other changes, rerun `brief.mjs` with `--notes` capturing the correction for
+anything structural, or edit `PLAN.md` and `plan.json` together for small tweaks. Keep the
+two in sync — the build scripts read the JSON. A rerun keeps the existing `direction.json`
+and `research.json` unless you pass `--redraw`, so fixing the script does not cost you the
+look. Re-print the storyboard after a rerun:
 `node "$SKILL_DIR/scripts/storyboard.mjs" ./<topic-slug>`
 
 ## Phase 2 — Hand-off (stop here)
@@ -167,14 +208,21 @@ including how transition overlap affects scene durations.
 
 ```bash
 node scripts/generate-assets.mjs        # reads plan.json's asset manifest
-node scripts/matte.mjs                # keys out the chroma backdrop, writes real alpha
+node scripts/matte.mjs                  # keys the chroma out, writes real alpha
 ```
 
-Gemini cannot emit an alpha channel — it returns JPEG and will paint a fake checkerboard if
-you ask for transparency. The prompts therefore request a flat magenta backdrop that
-`matte.mjs` keys out. Flat single-colour shapes (ink blots, silhouettes) need
-`matte-ink.mjs` instead, which builds alpha from luminance so anti-aliased edges do not keep
-a magenta fringe. Details in [the production playbook](./references/production-playbook.md).
+A manifest is twelve to eighteen assets, so this is one of the slow steps — kick it off early
+and let it run while you write scenes. It generates three at a time and retries once, and
+`--missing` regenerates only what is not on disk yet.
+
+`generate-assets.mjs` appends the reel's own art direction to every prompt, so the manifest
+describes subjects and the direction supplies the look. Gemini cannot emit an alpha channel —
+it returns JPEG and paints a fake checkerboard if you ask for transparency — so cutouts and
+props are rendered on flat magenta and keyed. Textures and environment plates stay opaque,
+and flat symbols are matted from luminance instead so their anti-aliased edges cannot keep a
+magenta fringe. `matte.mjs` reads the manifest and routes all of that itself; you still just
+run it with no arguments. Details in
+[the production playbook](./references/production-playbook.md).
 
 Inspect what came back before building on it — a contact sheet over a loud colour makes bad
 mattes obvious immediately:
@@ -188,20 +236,37 @@ Then Read that PNG. Regenerate any asset that came back wrong:
 (the same physician tired in scene 1 and relaxed in the payoff), pass a reference image with
 `--ref <existing-asset>.png`.
 
-**4. Write the scenes.** One file per scene in `src/scenes/`, composed from the bundled
+**4. Fill in `src/look.ts` from `direction.json`.** Do this before writing any scene. It is
+three values — the backdrop variant, the camera mode, and the type animation for each scene —
+and every scene reads them from there, so restyling the reel later is a one-line change.
+
+Check the type animations as you write them: **no two adjacent scenes may share one.** That
+is the single most visible rule in the system; a reel that punches every headline in
+identically reads as a template however good the writing is.
+
+**5. Write the scenes.** One file per scene in `src/scenes/`, composed from the bundled
 component kit — do not rebuild typography, transitions or motion graphics from scratch, they
 are already written and battle-tested. [The component kit reference](./references/component-kit.md) is the API.
 
-The kit gives you: `Headline`/`Eyebrow`/`Deck`/`SlamWord`/`CountUp` with five animated
-emphasis marks, four scene transitions, `RippleRings`/`ScanBeam`/`TickerStrip`/`BarCompare`/
-`Confetti`/`StatChip`/`Motes`, texture overlays, a browser frame, and burned-in captions.
+Every scene has the same skeleton: `<Backdrop variant={BACKDROP} />` first, content wrapped
+in `<CameraMove mode={CAMERA} duration={...}>`, `<PaperTexture />` last.
+
+The kit gives you fourteen backdrops and five camera moves; `Headline` with eight entrance
+animations and five emphasis marks, plus `Eyebrow`/`Deck`/`SlamWord`/`CountUp`/`Confetti`;
+thirteen kinetic type systems in `KineticType.tsx`; fourteen scene transitions; twenty-odd
+motion devices across `MotionGraphics.tsx` and `Devices.tsx`; texture overlays, a browser
+frame, the product panel, and burned-in captions.
+
+Build each scene from what the plan assigned it — its `typeSystem`, its `motionMotif`, its
+`cameraNote` — and take transitions from the art direction's cut palette rather than reaching
+for `tornPaper` every time.
 
 [The production playbook](./references/production-playbook.md) carries the craft rules that are easy to get wrong and
 expensive to discover late — caption safe zones, headline width arithmetic, the sentence-case
-typography policy, sound-design levels, and the transition timing math. Read it before
-writing the first scene.
+typography policy, sound-design levels, the transition timing math, and §11 on how the
+variation system is meant to be honoured. Read it before writing the first scene.
 
-**5. Review your own frames.** This is not optional polish; it is how the real bugs get
+**6. Review your own frames.** This is not optional polish; it is how the real bugs get
 found. Layout collisions, clipped text and bad mattes are invisible in code and obvious in a
 still.
 
@@ -213,13 +278,13 @@ Render one still per major beat — roughly ten to fifteen across the reel — a
 one**. Fix what you see, then re-check. Expect two or three rounds; the first pass always has
 something overlapping.
 
-**6. Render.**
+**7. Render.**
 
 ```bash
 npx remotion render Reel out/<topic-slug>.mp4 --codec=h264 --crf=20 --concurrency=6
 ```
 
-**7. Check the delivered file, not just the composition.** They can differ, and the mp4 is
+**8. Check the delivered file, not just the composition.** They can differ, and the mp4 is
 what ships.
 
 ```bash
@@ -235,11 +300,19 @@ If the reel already exists, do not start over — `cd` into its folder, make the
 the still checks for the affected frames, and re-render. Re-run `brief.mjs` only if the
 message itself is changing, and re-record the VO only if the script changes.
 
+A restyle is not a rebuild. Changing `BACKDROP` or `CAMERA` in `src/look.ts` re-skins every
+scene at once; changing a scene's entry in `SCENE_TYPE_ANIM` changes how its type arrives. If
+they want a genuinely different look, redraw the direction and update `look.ts` from it — the
+scenes themselves usually survive untouched.
+
 ## Reference files
 
 - [Production playbook](./references/production-playbook.md) — the craft rules and the
-  failure modes worth knowing in advance. Read this before writing scenes.
+  failure modes worth knowing in advance. Read this before writing scenes; §11 covers how the
+  drawn direction is meant to reach the code.
 - [Component kit](./references/component-kit.md) — API for every bundled component.
+- [Creative systems](./references/creative-systems.json) — the catalog the look is drawn
+  from. Add entries here to widen the range of reels this skill can make.
 - [Gemini brief prompt](./references/gemini-brief-prompt.md) — the brief sent to Gemini.
-  Edit to change house style.
+  Edit to change the editorial standard, which is the thing that should stay constant.
 - [Troubleshooting](./references/troubleshooting.md) — known breakages and their fixes.

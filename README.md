@@ -10,8 +10,9 @@ pick the music. Claude builds and renders the reel.
 ```
   You:     "make a reel about the new one-click referral letters"
            │
-  Phase 1  Gemini 3.1 Pro writes the plan — narrative arc, scene beats,
-           the voiceover script, an asset manifest, sound cues
+  Phase 1  A look is drawn for this reel, the topic is researched,
+           then Gemini 3.1 Pro writes the plan — narrative arc, scene
+           beats, the voiceover script, an asset manifest, sound cues
            │
   ═══════  You record the voiceover and pick background music  ═══════
            │
@@ -20,9 +21,16 @@ pick the music. Claude builds and renders the reel.
            renders the video
 ```
 
-The voiceover is the clock. Nothing gets animated until it exists, and every beat is pinned
-to the frame a specific word is spoken — which is what makes the result feel *cut to* the
-narration rather than laid over it.
+Two ideas hold the whole thing up.
+
+**The voiceover is the clock.** Nothing gets animated until it exists, and every beat is
+pinned to the frame a specific word is spoken — which is what makes the result feel *cut to*
+the narration rather than laid over it.
+
+**The look is drawn, not chosen.** Every reel gets a different art direction, narrative
+shape, edit rhythm, set of kinetic text treatments and motion motifs, pulled from a catalog
+and held out against what your last few reels used. See
+[Every reel looks different](#every-reel-looks-different).
 
 ---
 
@@ -31,12 +39,14 @@ narration rather than laid over it.
 - [Installation — Claude Code](#installation--claude-code)
 - [Installation — GitHub Copilot](#installation--github-copilot)
 - [Making your first reel](#making-your-first-reel)
+- [Every reel looks different](#every-reel-looks-different)
 - [Command reference](#command-reference)
 - [Writing a good topic](#writing-a-good-topic)
 - [Revising a reel](#revising-a-reel)
 - [What ends up in the folder](#what-ends-up-in-the-folder)
 - [Using a different brand](#using-a-different-brand)
 - [Changing the house style](#changing-the-house-style)
+- [Updating to a new version](#updating-to-a-new-version)
 - [Troubleshooting](#troubleshooting)
 - [For maintainers](#for-maintainers)
 
@@ -272,9 +282,13 @@ full storyboard. **This takes about a minute.**
 
 Claude shows you the **whole storyboard** — not a summary. You get:
 
+- The **look drawn for this reel** — its art direction, the shape of the argument, how it
+  cuts, how the text animates. Different every time; say so if you want another one
+- What the **research** turned up — how many grounded facts, and anything surprising
 - The **voiceover script**, word for word, with delivery notes
 - **Every scene** shot by shot: its kicker and headline, which word carries the marker
-  emphasis, what moves on which spoken words, which photos it uses, where things sit in frame
+  emphasis, how its text animates, what moves on which spoken words, which photos it uses,
+  where things sit in frame
 - The **cut** between each pair of scenes and why it was chosen
 - What **artwork** gets generated and how many **sound cues** there are
 - How the reel **ends** — the closing line, the button, the URL
@@ -284,6 +298,18 @@ Claude shows you the **whole storyboard** — not a summary. You get:
 It looks like this:
 
 ```
+  ── THE LOOK — drawn for this reel, different from the last one ───────
+
+  Art        Night data room — Dark operations-room look. Glowing data
+             lines over near-black, numbers as the hero.
+  Arc        Myth bust: State the thing everyone believes, show why it is
+             wrong, replace it with what is actually true.
+  Edit       Zoom punch — every emphasis word is a hard scale step in.
+  Type       Odometer roll · Scramble settle · Mask rise · Karaoke fill
+  Cuts       glitchSlice, zoomPunch, colorFlash, irisWipe
+
+  ── STORYBOARD ───────────────────────────────────────────────────────
+
   1. The Worst Part   0s–10s   (dark background)
 
      kicker    POST-VISIT GRIND
@@ -295,11 +321,12 @@ It looks like this:
        on "Billing"
          SlamWord 'BILLING' takes over the screen with a harsh zoom.
 
+     type      scramble-settle — glyphs resolve into the number
      art       doctor-rubbing-eyes
      layout    Cutout of exhausted doctor sits bottom-right. Keep bottom
                300px clear for captions.
 
-        ↓  tornPaper — Rips away to reveal the underlying financial reality.
+        ↓  glitchSlice — the old system stuttering out.
 ```
 
 It ends with the two audio files it needs from you, so the plan and the ask arrive together.
@@ -317,7 +344,12 @@ If you want changes, just say so in plain language:
 
 > make it 45 seconds instead
 
-Claude will regenerate or edit the plan and re-print the storyboard. The same detail is also
+> I do not like this look — give me something else
+
+> use the same look as the referrals reel
+
+Claude will regenerate or edit the plan and re-print the storyboard. Asking for a different
+look costs one rerun and never touches the script. The same detail is also
 written to **`PLAN.md`** in the new folder if you would rather read it there or send it to
 someone for sign-off.
 
@@ -352,13 +384,63 @@ From here it is hands-off. Claude will:
 2. Transcribe your voiceover to word-level timings — **the first time on a new computer this
    downloads a ~500MB speech model, so allow several minutes**; after that it is seconds
 3. Rebuild the timeline around what you actually recorded
-4. Generate the photo cutouts and textures with Gemini
+4. Generate the photo cutouts, props, textures and plates with Gemini — twelve to eighteen
+   of them, so this is one of the slower steps
 5. Write the scenes
 6. Render test frames and look at them, fix what is wrong, and look again
 7. Render the video
 
 Expect **15–30 minutes** end to end, most of it rendering. Claude will show you the finished
 mp4 when it is done, along with a note of anything it changed from the plan.
+
+---
+
+## Every reel looks different
+
+The thing that kills a video series is not bad reels. It is competent ones that all look the
+same — same paper background, same headline punching in word by word, same four photos, same
+torn-paper cut. Nobody complains about it, and three reels in the feed looks like a template.
+
+So the look is **drawn before the script is written**, out of a catalog, with whatever your
+last few reels used held out of the pool. You get:
+
+| Drawn per reel | Out of |
+|---|---|
+| **Art direction** — the whole visual world | 14, from paper collage and risograph to night data, blueprint, archive broadcast, newsprint, chalk lecture, terminal mono |
+| **Narrative arc** — the shape of the argument | 10, from cost-then-cure to myth-bust, day-in-the-life, countdown, objection-handling, contrarian take |
+| **Opening gambit** — the first spoken clause | 10, from a hard number to a cold question to opening mid-action |
+| **Edit language** — how it cuts | 10, from whip cuts to freeze-and-annotate to long-take drift |
+| **Kinetic type** — how text behaves | 4 drawn from 12, spread across the scenes, never twice in a row |
+| **Motion motifs** — the signature devices | 3 drawn from 12 — dot matrices, timeline rails, orbit systems, pulse maps, isometric grids |
+| **Camera language** — how the frame moves | 8, from locked off to handheld drift to a side dolly |
+
+That is more combinations than you will ever exhaust, and the history file on your machine
+makes a near-repeat unlikely even across a run of reels in one week.
+
+**The topic is researched first, too.** Before the plan is written, the topic is searched and
+turned into a brief: real figures with sources, the vocabulary your audience actually uses,
+the objections they would raise — and, for the film, the **real objects, rooms and human
+moments** of that world. The asset list is built out of those, which is why it runs to twelve
+to eighteen images rather than four, and why they look like your industry rather than like
+stock photography. It is all written to `RESEARCH.md` in the reel folder if you want to read
+it.
+
+### Steering it
+
+You never have to. But if you want to:
+
+> make it look like a risograph print
+
+> I want the dark data-room look, like the OSCAR reel
+
+> use the same look as the referrals reel
+
+Every draw has a **seed**, printed in the storyboard and saved in the reel folder, so a look
+someone liked can always be brought back exactly. And if you just do not like what came out:
+
+> give me a different look
+
+costs one rerun and leaves the script alone.
 
 ---
 
@@ -438,8 +520,12 @@ sound levels — needs no re-record.
 one-click-referrals/
   PLAN.md                 the creative plan, in plain English
   plan.json               the same plan, for the scripts
+  direction.json          the look drawn for this reel, and its seed
+  RESEARCH.md             what was found about the topic, with sources
+  research.json           the same research, for the scripts
   assets/audio/           your voiceover and music
-  public/art/             the generated cutouts and textures
+  public/art/             the generated cutouts, props, textures and plates
+  src/look.ts             backdrop, camera move and per-scene text animation
   src/scenes/             one file per scene
   src/timing.ts           the timeline, pinned to your voiceover
   out/one-click-referrals.mp4    the reel
@@ -471,8 +557,13 @@ The components read the brand file at render time, so re-skinning changes data, 
 
 ## Changing the house style
 
-Two files control how every future reel comes out:
+Three files control how every future reel comes out:
 
+- **`skills/reel-studio/references/creative-systems.json`** — the catalog every reel's look is
+  drawn from: the art directions, narrative arcs, edit languages, kinetic type systems,
+  motion motifs and camera languages. **Add entries here to widen the range**, or delete ones
+  you never want to see. Each art direction carries its own photography direction, which is
+  appended to every image prompt, and its own palette of cuts.
 - **`skills/reel-studio/references/gemini-brief-prompt.md`** — the brief sent to Gemini. This
   is where the writing rules live: how the argument is structured, what the voiceover may and
   may not sound like, when capital letters are allowed. Edit this to change how reels are
@@ -481,8 +572,119 @@ Two files control how every future reel comes out:
   while building. Caption safe zones, headline sizing, sound levels, animation conventions.
   Edit this to change how reels are *made*.
 
-Both are plain Markdown. Change them, commit, and everyone who pulls gets the new house
-style.
+The split is deliberate. The brief and the playbook are the things that should stay
+**constant** across every reel — the editorial standard. The catalog is the thing that must
+**not**. Widening the catalog makes your reels more varied; editing the brief makes them all
+better in the same way.
+
+An art direction is a small block of JSON. Adding one means giving it a name, a summary, a
+photography direction, a cut palette, and a `backdrop` naming one of the fourteen variants in
+`src/components/Backdrop.tsx` — or a new one you add there.
+
+Change any of them, commit, push, and everyone who updates gets it.
+
+---
+
+## Updating to a new version
+
+When the skill changes — a new art direction, a new component, a fix — here is how to pick it
+up. **Your existing reel folders are not touched by any of this.** Each one has its own copy
+of the component kit and scripts, so a reel you already rendered keeps rendering the same way;
+the update applies to reels you start afterwards.
+
+### Claude Code
+
+Two commands, in this order. The first re-fetches the marketplace listing, the second
+reinstalls the plugin from it.
+
+```
+/plugin marketplace update healthlytics
+```
+
+```
+/plugin install reel-studio@healthlytics
+```
+
+Then confirm it took:
+
+```
+/plugin
+```
+
+You should see **reel-studio** listed and enabled. If a slash command misbehaves afterwards,
+restart Claude Code — commands are read at startup.
+
+If `/plugin marketplace update` reports it cannot find `healthlytics`, the marketplace was
+never added on this machine. Add it and install:
+
+```
+/plugin marketplace add healthlyticsai/reels-studio
+```
+
+```
+/plugin install reel-studio@healthlytics
+```
+
+You can also do both from the interactive menu: run `/plugin`, pick the marketplace, and
+choose update there.
+
+### GitHub Copilot
+
+If you installed the default way (a symlink into `~/.copilot/skills/`), `git pull` is the
+whole update:
+
+```bash
+cd ~/reels-studio && git pull
+```
+
+The symlink points at your clone, so the new SKILL.md, references, scripts and component kit
+are live immediately.
+
+**Re-run the installer as well** whenever the set of slash commands changes, or when a
+command's text changes — those are generated files rather than symlinks, so `git pull` alone
+does not refresh them:
+
+```bash
+bash ~/reels-studio/skills/reel-studio/scripts/install-copilot.sh
+```
+
+Then quit VS Code completely and reopen it. A window reload is not always enough.
+
+If you installed with `--copy` instead of the default symlink, `git pull` does nothing for
+you — re-run the installer to copy the new files over:
+
+```bash
+cd ~/reels-studio && git pull && bash skills/reel-studio/scripts/install-copilot.sh --copy
+```
+
+### Checking which version you have
+
+```bash
+cd ~/reels-studio && git log --oneline -3
+```
+
+For a plugin install, the cached clone is under `~/.claude/plugins/`; the quickest check that
+a specific change landed is to ask for something only the new version has. For this release:
+
+> list the art directions reel-studio can use
+
+Claude runs `direction.mjs --list` and prints them. If that command is not found, the update
+did not land.
+
+### If an update breaks something
+
+Nothing here is destructive, and reel folders are self-contained, so the fallback is to
+reinstall:
+
+```
+/plugin uninstall reel-studio@healthlytics
+```
+
+```
+/plugin install reel-studio@healthlytics
+```
+
+For Copilot, `install-copilot.sh --uninstall` then run it again.
 
 ---
 
@@ -496,6 +698,9 @@ style.
 | Text hidden behind the captions | Ask Claude to fix it — scene content has to stay clear of the bottom band. |
 | The speech model download stalls | Ask Claude to retry it. On a slow connection it sometimes times out partway. |
 | Rendering feels very slow | Normal for a 60-second reel. Close other heavy apps. |
+| Two reels came out looking alike | Say "give me a different look" and Claude redraws it. If it keeps happening, the history file at `~/.reel-studio/history.json` may have been cleared — it is what holds recent looks out of the pool. |
+| The look is not what you wanted | Name what you want: "make it look like a blueprint schematic", "use the dark data-room one". Claude will list the options if you ask. |
+| Asset generation takes a long time | Expected — a reel is twelve to eighteen images now. It runs three at a time. Regenerate only what failed rather than the whole set. |
 
 Deeper detail, including the failure modes worth knowing in advance, is in
 **`skills/reel-studio/references/troubleshooting.md`**.
@@ -512,9 +717,11 @@ Deeper detail, including the failure modes worth knowing in advance, is in
   marketplace.json       marketplace manifest (this repo is its own marketplace)
 skills/reel-studio/
   SKILL.md               the workflow Claude follows
-  references/            playbook, component API, the Gemini brief, troubleshooting
-  scripts/               brief, scaffold, asset generation, matting, transcription
-                         plus install-copilot.sh, which mirrors the commands as skills
+  references/            playbook, component API, the Gemini brief, troubleshooting,
+                         and creative-systems.json — the catalog looks are drawn from
+  scripts/               direction, research, brief, scaffold, asset generation,
+                         matting, transcription, plus install-copilot.sh, which
+                         mirrors the commands as skills
   assets/
     brand/               brand.config.json
     logo/  sfx/  art/    brand logos, six sound effects, transition furniture
@@ -523,17 +730,31 @@ skills/reel-studio/
 
 ### How the pieces fit
 
-- **`scripts/brief.mjs`** sends `references/gemini-brief-prompt.md` to
-  `gemini-3.1-pro-preview` and writes `plan.json` + `PLAN.md`.
+- **`scripts/direction.mjs`** draws this reel's look from
+  `references/creative-systems.json`, holding out what the last few reels used (history in
+  `~/.reel-studio/history.json`, overridable with `REEL_STUDIO_HOME`). Writes
+  `direction.json`. Seeded, so `--seed` reproduces a draw exactly.
+- **`scripts/research.mjs`** grounds the topic with Gemini plus Google Search and writes
+  `research.json` + `RESEARCH.md`. Its `visualMotifs` and `humanMoments` are what the asset
+  manifest gets built from.
+- **`scripts/brief.mjs`** runs those two, then sends
+  `references/gemini-brief-prompt.md` — with the direction and research substituted in — to
+  `gemini-3.1-pro-preview`, and writes `plan.json` + `PLAN.md`. It tops the asset manifest up
+  with a second call if it comes back under twelve.
 - **`scripts/new-project.sh`** scaffolds Remotion, copies the component kit and brand config,
   and pins the dependency set.
-- **`scripts/generate-assets.mjs`** reads the plan's asset manifest. Gemini cannot emit an
-  alpha channel, so subjects are rendered on flat magenta and **`scripts/matte.mjs`** keys it
-  out. Flat single-colour shapes use **`matte-ink.mjs`** instead.
+- **`scripts/generate-assets.mjs`** reads the plan's asset manifest and appends the art
+  direction's own photography direction to every prompt. Gemini cannot emit an alpha channel,
+  so cutouts and props are rendered on flat magenta and **`scripts/matte.mjs`** keys them
+  out; flat symbols go through **`matte-ink.mjs`** for luminance alpha, and textures and
+  environment plates stay opaque. `matte.mjs` routes all three from the manifest.
 - **`scripts/transcribe.mjs`** runs whisper.cpp and prints the sentence table the timeline is
   derived from.
-- **`assets/template/src/components/`** is the shared kit — typography with animated emphasis
-  marks, four scene transitions, motion-graphics devices, captions, texture.
+- **`assets/template/src/components/`** is the shared kit — fourteen backdrops and five
+  camera moves (`Backdrop.tsx`), typography with eight entrances and five emphasis marks
+  (`Type.tsx`), thirteen kinetic type systems (`KineticType.tsx`), fourteen scene transitions
+  (`Transitions.tsx`), motion devices (`MotionGraphics.tsx`, `Devices.tsx`), captions,
+  texture. **`src/look.ts`** in each project is where the drawn direction reaches the code.
 
 ### Two hosts, one source
 
@@ -549,8 +770,11 @@ change up by re-running the installer.
 git add -A && git commit -m "..." && git push
 ```
 
-Team members pick it up by opening `/plugin` and updating the **healthlytics**
-marketplace from there.
+Team members pick it up with `/plugin marketplace update healthlytics` followed by
+`/plugin install reel-studio@healthlytics`, or from the `/plugin` menu. Copilot users
+`git pull`, and re-run `install-copilot.sh` if the commands changed. Full instructions are in
+[Updating to a new version](#updating-to-a-new-version) — point people there rather than
+retyping it.
 
 ### Testing without publishing
 

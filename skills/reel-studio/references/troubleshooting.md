@@ -111,3 +111,44 @@ node scripts/contact-sheet.mjs --video out/reel.mp4 /tmp/final.png
 Drop `--concurrency` if the machine is swapping; raise it if cores are idle. `--crf=20` is a
 good default — `18` is visually identical for this content and roughly 15% larger. Vertical
 reels at 69s land around 28–32MB at crf 20, which is under most upload limits.
+
+## The drawn direction
+
+**Two reels came out looking alike.** The history that holds recent picks out of the pool
+lives at `~/.reel-studio/history.json` (or `$REEL_STUDIO_HOME/history.json`). If it was
+cleared, or the reels were made on different machines, the draws are independent and can
+collide. Force one with `--art <id>`, or just `--redraw` until it is different.
+
+**`direction.json` is missing.** `brief.mjs` writes it. A project scaffolded before the
+variation system existed will not have one — run
+`node scripts/direction.mjs --project .` inside the folder to draw one, then fill in
+`src/look.ts` from it. Without it, `generate-assets.mjs` falls back to a neutral documentary
+direction rather than failing, so art still generates; it just will not belong to a look.
+
+**The reel does not look like its art direction.** Almost always `src/look.ts` was never
+filled in, so every scene is still rendering the default `paperCollage` backdrop. Check that
+`BACKDROP`, `CAMERA` and `SCENE_TYPE_ANIM` match `direction.json` and the plan, and that
+every scene actually renders `<Backdrop variant={BACKDROP} />`.
+
+**Every headline animates the same way.** `SCENE_TYPE_ANIM` has the same value for adjacent
+scenes, or the scenes are not passing `anim` to `Headline` at all. This is the most visible
+failure in the whole system and it is invisible in a still — scrub two adjacent scenes in
+Remotion Studio rather than trusting frames.
+
+## Assets
+
+**The manifest came back with four assets.** `brief.mjs` makes a second call to top it up to
+twelve and prints when it does. If the top-up also failed, the message says so — rerun the
+brief, or add entries to `plan.json` by hand and run
+`node scripts/generate-assets.mjs --missing`.
+
+**Generation is rate-limited part way through a manifest.** It runs three at a time and
+retries once, then prints the names that failed with the command to rerun them. Run that;
+already-generated assets are left alone.
+
+**A texture or environment plate came out with a transparent hole in it.** Its `kind` in the
+manifest is `cutout` or `prop`, so it was chroma-keyed. Fix the `kind` to `texture` or
+`environment`, regenerate, and re-matte.
+
+**A flat shape has a magenta fringe.** Its `kind` is not `symbol`. Fix the manifest rather
+than running `matte-ink.mjs` by hand, or the next regeneration repeats it.

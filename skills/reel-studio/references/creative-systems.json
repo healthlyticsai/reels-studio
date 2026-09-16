@@ -1,0 +1,254 @@
+{
+  "$comment": "The variation catalog. scripts/direction.mjs draws one entry from each list to fix a unique look for a reel, and injects the result into the Gemini brief and the asset prompts. Add entries freely — the picker reads whatever is here. Every artDirection.backdrop must name a variant that exists in src/components/Backdrop.tsx, and every typeSystem.primary must name a component exported from src/components/KineticType.tsx or Type.tsx.",
+
+  "artDirections": [
+    {
+      "id": "paper-collage",
+      "name": "Paper collage documentary",
+      "summary": "Torn-edge magazine collage on warm paper. Scissor-cut photography, halftone dots, hand-drawn marker emphasis. The Vox / Johnny Harris house look.",
+      "backdrop": "paperCollage",
+      "mood": "light",
+      "typographyFeel": "Heavy sentence-case grotesk, tight tracking, marker highlight and hand-drawn underline as the emphasis language.",
+      "imageDirection": "Editorial magazine collage cutout with a crisp 12px white paper border as if scissor-cut from a printed page. Slightly desaturated documentary photography, cool neutral grade, soft even light, gentle film grain.",
+      "propDirection": "Real physical objects photographed flat on a desk, slight drop shadow, as if pasted into a scrapbook.",
+      "transitions": ["tornPaper", "stackShuffle", "halftoneDissolve", "cardPush"],
+      "avoid": "Glossy 3D renders, glassmorphism, neon."
+    },
+    {
+      "id": "riso-print",
+      "name": "Risograph zine print",
+      "summary": "Two-ink risograph printing — heavy grain, visible misregistration, flat spot colours knocking out of each other. Everything looks printed rather than rendered.",
+      "backdrop": "risograph",
+      "mood": "tinted",
+      "typographyFeel": "Chunky display type that overprints the artwork, with a 3px offset ghost in the second ink colour.",
+      "imageDirection": "High-contrast two-tone risograph print of the subject, coarse visible grain and halftone dither, flat posterised shadows, slight ink misregistration, printed on uncoated paper.",
+      "propDirection": "Objects reduced to two flat ink layers with visible dot texture and a misregistered outline.",
+      "transitions": ["inkSplatter", "barWipe", "halftoneDissolve", "colorFlash"],
+      "avoid": "Photographic gradients, soft shadows, realistic depth of field."
+    },
+    {
+      "id": "swiss-editorial",
+      "name": "Swiss editorial grid",
+      "summary": "International-style poster discipline. A visible modular grid, enormous type set to the baseline, generous white space, a single accent colour doing all the work.",
+      "backdrop": "swissGrid",
+      "mood": "light",
+      "typographyFeel": "Left-aligned, flush-left ragged-right, very large weights against very small labels. Rules and hairlines instead of decoration.",
+      "imageDirection": "Clean studio photograph of the subject, even diffuse light, neutral grade, no props beyond what the subject holds, composed with generous negative space.",
+      "propDirection": "One object, centred, shot straight on under flat studio light, no styling.",
+      "transitions": ["barWipe", "cardPush", "shutterSlats", "zoomPunch"],
+      "avoid": "Texture overlays, hand-drawn marks, centred symmetry everywhere."
+    },
+    {
+      "id": "night-data",
+      "name": "Night data room",
+      "summary": "Dark operations-room look. Glowing data lines over near-black, numbers as the hero, light spilling from the graphics onto everything else.",
+      "backdrop": "nightData",
+      "mood": "dark",
+      "typographyFeel": "White and accent type on near-black, tabular numerals oversized, thin dividing rules, a faint glow behind the emphasis word.",
+      "imageDirection": "Low-key photograph of the subject lit from one side by cool screen light in a dark room, deep shadows, the face and hands catching the light.",
+      "propDirection": "Object lit by a single cool rim light against darkness, subtle specular highlights.",
+      "transitions": ["glitchSlice", "zoomPunch", "colorFlash", "irisWipe"],
+      "avoid": "Paper texture, warm beige, anything that reads as printed."
+    },
+    {
+      "id": "blueprint-technical",
+      "name": "Blueprint schematic",
+      "summary": "Everything drawn as a technical schematic — measurement ticks, callout leader lines, exploded diagrams, annotations in a monospaced hand.",
+      "backdrop": "blueprint",
+      "mood": "tinted",
+      "typographyFeel": "Sentence-case display type paired with small monospaced annotation labels and dimension arrows.",
+      "imageDirection": "Photograph of the subject shot flat and square to the camera, even light, so it can be annotated with callout lines. Neutral cool grade.",
+      "propDirection": "Object photographed dead-on from a single axis like a parts catalogue plate.",
+      "transitions": ["pathWipe", "barWipe", "irisWipe", "cardPush"],
+      "avoid": "Soft romantic lighting, collage edges, confetti."
+    },
+    {
+      "id": "archive-broadcast",
+      "name": "Archive broadcast",
+      "summary": "Degraded tape footage — scanlines, slight chroma bleed, a lower-third that slides in like a 1990s news bug. Used to make the old way feel genuinely old.",
+      "backdrop": "archiveFilm",
+      "mood": "tinted",
+      "typographyFeel": "Condensed news-bug lower thirds and timecode-style labels next to modern sentence-case headlines.",
+      "imageDirection": "Slightly degraded archival video still of the subject, softened detail, mild chroma bleed, faint scanlines, colour shifted slightly warm.",
+      "propDirection": "Object shot as a 1990s catalogue photograph, slightly soft, mild colour cast.",
+      "transitions": ["glitchSlice", "filmBurn", "shutterSlats", "cardPush"],
+      "avoid": "Crisp modern gradients, glassy surfaces."
+    },
+    {
+      "id": "gallery-minimal",
+      "name": "Gallery minimal",
+      "summary": "One idea per frame, hung like a gallery print. Huge margins, a soft floor shadow, and long quiet holds that let the narration carry.",
+      "backdrop": "gallery",
+      "mood": "light",
+      "typographyFeel": "Small confident type in a lot of space. Emphasis comes from scale and position, not from marks.",
+      "imageDirection": "Museum-quality photograph of the subject, soft directional light, matte finish, restrained natural colour, composed centrally with air around it.",
+      "propDirection": "Single object on a plain surface with a soft long shadow, like a product plate.",
+      "transitions": ["irisWipe", "zoomPunch", "barWipe", "stackShuffle"],
+      "avoid": "Busy overlays, more than two elements on screen at once."
+    },
+    {
+      "id": "chalk-lecture",
+      "name": "Chalk lecture",
+      "summary": "Ideas drawn as they are spoken, on a dark green board. Arrows, circles and underlines appear by hand; nothing is pre-drawn.",
+      "backdrop": "chalkboard",
+      "mood": "dark",
+      "typographyFeel": "Chalky white and pastel type with hand-drawn circles and arrows, deliberately slightly irregular.",
+      "imageDirection": "Photograph of the subject with a soft warm classroom light, natural expression, mid-shot, so it can sit beside drawn annotation.",
+      "propDirection": "Object photographed simply so it can be circled and annotated with chalk marks.",
+      "transitions": ["pathWipe", "halftoneDissolve", "tornPaper", "cardPush"],
+      "avoid": "Photographic gradients behind the board, glossy UI panels."
+    },
+    {
+      "id": "neon-gradient",
+      "name": "Neon gradient",
+      "summary": "Saturated brand-gradient fields, soft volumetric glow, floating glass panels. Confident and modern, the look of a launch film.",
+      "backdrop": "neonGradient",
+      "mood": "dark",
+      "typographyFeel": "Gradient-filled display type with a soft bloom, set against translucent frosted panels.",
+      "imageDirection": "Photograph of the subject lit with coloured gradient light from two sides, glossy modern grade, crisp detail, shallow depth of field.",
+      "propDirection": "Object on a reflective surface lit with coloured gradient light and a soft bloom.",
+      "transitions": ["zoomPunch", "colorFlash", "irisWipe", "cardPush"],
+      "avoid": "Paper grain, halftone dots, hand-drawn marks."
+    },
+    {
+      "id": "newsprint-tabloid",
+      "name": "Newsprint tabloid",
+      "summary": "Cheap newsprint, ragged column rules, a banner headline that takes the whole frame. Loud, urgent and a little bit shouty — in the layout, not the words.",
+      "backdrop": "newsprint",
+      "mood": "light",
+      "typographyFeel": "Banner headline across the full width with a rule under it, body set in narrow columns, kicker in a black bar.",
+      "imageDirection": "Coarse newsprint halftone photograph of the subject, visible dot screen, high contrast black and white with one spot colour.",
+      "propDirection": "Object as a newsprint halftone cut, hard black dots, slightly off-register spot colour.",
+      "transitions": ["tornPaper", "barWipe", "stackShuffle", "halftoneDissolve"],
+      "avoid": "Soft gradients, glow, rounded corners."
+    },
+    {
+      "id": "clean-product",
+      "name": "Clean product film",
+      "summary": "The product's own interface is the star. Crisp white set, floating UI panels with real shadows, everything shot like a keynote.",
+      "backdrop": "cleanStudio",
+      "mood": "light",
+      "typographyFeel": "Calm sentence-case type, plenty of leading, colour used only on the one word that matters.",
+      "imageDirection": "Bright clean photograph of the subject on a seamless white set, soft even light, crisp modern grade, gentle contact shadow.",
+      "propDirection": "Object on seamless white with a soft contact shadow, keynote product-shot lighting.",
+      "transitions": ["cardPush", "zoomPunch", "barWipe", "irisWipe"],
+      "avoid": "Grain, torn edges, anything distressed."
+    },
+    {
+      "id": "duotone-split",
+      "name": "Duotone split",
+      "summary": "The frame is always divided — old world against new, cost against saving. Each half gets its own duotone treatment and they fight for space.",
+      "backdrop": "duotoneSplit",
+      "mood": "tinted",
+      "typographyFeel": "Type crosses the divide, one half in each colour, so the split reads before the words do.",
+      "imageDirection": "Duotone photograph of the subject, two-colour gradient map, strong contrast, no midtone colour.",
+      "propDirection": "Object duotoned in the same two colours, silhouette-clear.",
+      "transitions": ["barWipe", "shutterSlats", "cardPush", "colorFlash"],
+      "avoid": "Full-colour photography, centred single-subject compositions."
+    },
+    {
+      "id": "sticker-scrapbook",
+      "name": "Sticker scrapbook",
+      "summary": "Taped, stickered and annotated. Washi tape corners, circled notes in the margin, elements slightly rotated as if stuck down by hand.",
+      "backdrop": "scrapbook",
+      "mood": "light",
+      "typographyFeel": "Type on taped-down cards at small rotations, handwritten-feeling annotations pointing at things.",
+      "imageDirection": "Polaroid-style photograph of the subject with a warm flash-lit look, slight vignette, as if pinned to a board.",
+      "propDirection": "Object photographed as if lying on a desk and about to be taped down, soft top light.",
+      "transitions": ["stackShuffle", "tornPaper", "cardPush", "halftoneDissolve"],
+      "avoid": "Perfect alignment, cool clinical grades."
+    },
+    {
+      "id": "terminal-mono",
+      "name": "Terminal mono",
+      "summary": "A monospaced world. Text types itself, numbers tick in fixed columns, a cursor blinks. Reads as the machine doing the work.",
+      "backdrop": "terminalMono",
+      "mood": "dark",
+      "typographyFeel": "Monospaced labels and counters against one large proportional headline, so the contrast between machine and human voice is visible.",
+      "imageDirection": "Photograph of the subject lit by monitor light in a quiet room, cool grade, sharp detail, restrained composition.",
+      "propDirection": "Object on a dark desk surface under a single cool overhead light.",
+      "transitions": ["glitchSlice", "pathWipe", "shutterSlats", "colorFlash"],
+      "avoid": "Warm paper, confetti, hand-drawn marks."
+    }
+  ],
+
+  "typeSystems": [
+    { "id": "word-punch", "name": "Word punch", "primary": "Headline anim=\"punch\"", "support": ["SlamWord", "Eyebrow"], "how": "Words punch in one at a time with a spring overshoot, each pinned to the frame it is spoken." },
+    { "id": "mask-rise", "name": "Mask rise", "primary": "MaskReveal", "support": ["StackedLines", "Deck"], "how": "Each line rises out from behind a hard mask edge, like type pushed up through a slot." },
+    { "id": "typewriter-terminal", "name": "Typewriter", "primary": "Typewriter", "support": ["ScrambleText", "CountUp"], "how": "Characters type in with a blinking caret, at a rate matched to the narration." },
+    { "id": "char-cascade", "name": "Character cascade", "primary": "CharCascade", "support": ["Headline", "Eyebrow"], "how": "Every character enters on its own stagger with a small rotation, so the line assembles like falling tiles." },
+    { "id": "roll-up", "name": "Vertical roll", "primary": "VerticalRoll", "support": ["OdometerNumber", "WordSwap"], "how": "Words roll up out of a clipped window, the previous word rolling out of the top." },
+    { "id": "blur-focus", "name": "Blur to focus", "primary": "BlurFocus", "support": ["Deck", "SlamWord"], "how": "Type resolves from heavy blur into sharpness, like a lens finding focus." },
+    { "id": "karaoke-fill", "name": "Karaoke fill", "primary": "KaraokeLine", "support": ["Headline", "Deck"], "how": "The whole line is present in a dimmed colour and fills with the accent colour exactly as each word is spoken." },
+    { "id": "word-swap", "name": "Word swap", "primary": "WordSwap", "support": ["Headline", "StrikeThrough"], "how": "A fixed sentence with one slot, and the word in that slot is replaced two or three times." },
+    { "id": "split-flap", "name": "Split flap", "primary": "SplitFlap", "support": ["OdometerNumber", "Eyebrow"], "how": "Letters flip through like an airport departures board before settling." },
+    { "id": "elastic-slam", "name": "Elastic slam", "primary": "ElasticSlam", "support": ["SlamWord", "RadialBurst"], "how": "Type slams in oversized and settles with an elastic overshoot and a frame shake." },
+    { "id": "scramble-settle", "name": "Scramble settle", "primary": "ScrambleText", "support": ["Typewriter", "StatChip"], "how": "Characters cycle through random glyphs and resolve left to right into the real word." },
+    { "id": "stacked-slam", "name": "Stacked slam", "primary": "StackedLines", "support": ["Headline", "TapeStrip"], "how": "Lines land one under another, each one knocking the stack slightly, building a block of type." }
+  ],
+
+  "editLanguages": [
+    { "id": "whip-cut", "name": "Whip cut", "how": "Hard whip pans link scenes. Motion leaves frame one way and enters the next the same way, so the cut feels like a head turn.", "pace": "fast, 2–4s per shot" },
+    { "id": "beat-locked-triple", "name": "Beat-locked triple", "how": "Three rapid cuts land on three consecutive stressed words, then the edit holds. The burst is the punctuation.", "pace": "bursts of 8–12 frames inside slower scenes" },
+    { "id": "match-cut", "name": "Match cut", "how": "Each cut matches a shape or a position across the boundary — a circle becomes a clock, a rectangle becomes a screen.", "pace": "medium, 4–6s per shot" },
+    { "id": "freeze-annotate", "name": "Freeze and annotate", "how": "Motion stops dead on a key word and annotations draw onto the frozen frame before movement resumes.", "pace": "medium with 1–2s freezes" },
+    { "id": "zoom-punch", "name": "Zoom punch", "how": "Every emphasis word is a hard scale step into the frame, never a smooth zoom. The punch is on the consonant.", "pace": "fast, stepped" },
+    { "id": "long-take-drift", "name": "Long take drift", "how": "Very few cuts. The camera drifts slowly across a wide collage and elements animate in place as they are named.", "pace": "slow, 8–15s per shot" },
+    { "id": "jump-stutter", "name": "Jump stutter", "how": "Small jump cuts inside the same composition, elements repositioning between frames, building nervous energy.", "pace": "fast, irregular" },
+    { "id": "speed-ramp", "name": "Speed ramp", "how": "Motion accelerates through the dull part and slams to a stop on the point being made.", "pace": "variable inside each scene" },
+    { "id": "split-screen", "name": "Split screen", "how": "Two states run side by side and the divider moves to award space to whichever side the narration favours.", "pace": "medium, divider-driven" },
+    { "id": "l-cut-lead", "name": "L-cut lead", "how": "The next scene's sound and first graphic arrive before the picture cuts, so each scene pulls the last one forward.", "pace": "medium, overlapping" }
+  ],
+
+  "motionMotifs": [
+    { "id": "dot-matrix-units", "name": "Dot matrix units", "component": "DotMatrix", "how": "A grid of dots where a counted number fills in — hours, patients, forms. Abstract quantity made countable." },
+    { "id": "timeline-rail", "name": "Timeline rail", "component": "TimelineRail", "how": "A horizontal rail with markers that fill in as the narration walks through a sequence." },
+    { "id": "path-trace", "name": "Path trace", "component": "PathTrace", "how": "A line draws itself between points with a travelling dot, showing a journey or a flow." },
+    { "id": "orbit-system", "name": "Orbit system", "component": "OrbitDots", "how": "Satellites orbit a centre — the product at the middle, the things it touches circling it." },
+    { "id": "stacked-cards", "name": "Stacked cards", "component": "FloatingCards", "how": "A parallax stack of cards that fans out and recollapses, for a set of things becoming one thing." },
+    { "id": "split-compare", "name": "Split compare", "component": "SplitCompare", "how": "A moving divider between two states, the wipe itself carrying the argument." },
+    { "id": "pulse-map", "name": "Pulse map", "component": "PulseMap", "how": "A field of nodes with pings travelling between them — reach, network, adoption." },
+    { "id": "radial-burst", "name": "Radial burst", "component": "RadialBurst", "how": "Speed lines firing out from the emphasis word on the stressed syllable." },
+    { "id": "halftone-wave", "name": "Halftone wave", "component": "HalftoneWave", "how": "A field of dots swelling in a wave, for ambient listening, signal or breathing." },
+    { "id": "progress-arc", "name": "Progress arc", "component": "ProgressArc", "how": "A circular gauge filling to a number, for time saved, completion, coverage." },
+    { "id": "iso-grid", "name": "Isometric grid", "component": "IsoGrid", "how": "Isometric tiles rising out of a plane in sequence — building, scaling, stacking up." },
+    { "id": "film-strip", "name": "Film strip", "component": "FilmStrip", "how": "A strip of frames scrolling past, each one a moment in the story." }
+  ],
+
+  "cameraLanguages": [
+    { "id": "locked-off", "name": "Locked off", "how": "The frame never moves. Everything inside it does. Stillness makes the motion inside read louder." },
+    { "id": "slow-push-in", "name": "Slow push in", "how": "A continuous 3–6% scale push across each scene, so the frame is always closing in." },
+    { "id": "handheld-drift", "name": "Handheld drift", "how": "A small noise-driven wander of a few pixels, enough to feel operated rather than rendered." },
+    { "id": "whip-pan-links", "name": "Whip pan links", "how": "The frame whips sideways between compositions inside a scene, not just between scenes." },
+    { "id": "parallax-layers", "name": "Parallax layers", "how": "Background, mid and foreground move at different rates, giving real depth to a flat collage." },
+    { "id": "overhead-tabletop", "name": "Overhead tabletop", "how": "Shot from directly above a surface, with hands and objects entering from the frame edges." },
+    { "id": "rack-focus", "name": "Rack focus", "how": "Blur transfers between a foreground and a background element as attention moves." },
+    { "id": "dolly-side", "name": "Side dolly", "how": "The frame tracks sideways across a wide scene, revealing the next element rather than cutting to it." }
+  ],
+
+  "narrativeArcs": [
+    { "id": "cost-then-cure", "name": "Cost then cure", "shape": "Make the viewer feel what today costs them, introduce the product once the cost is felt, prove one mechanism, close on the reclaimed version of the opening." },
+    { "id": "myth-bust", "name": "Myth bust", "shape": "State the thing everyone believes, show why it is wrong with a concrete example, replace it with what is actually true, close on what that means for the viewer." },
+    { "id": "day-in-the-life", "name": "Day in the life", "shape": "Walk one real person through a single day, hour by hour, and let the product appear at the point the day would normally break." },
+    { "id": "before-after-mirror", "name": "Before / after mirror", "shape": "Two halves that rhyme shot for shot — the same moments, once without and once with. The rhyme is the argument." },
+    { "id": "countdown-list", "name": "Countdown list", "shape": "Three things, counted down, each one a self-contained beat with its own visual device, converging on one conclusion." },
+    { "id": "origin-story", "name": "Origin story", "shape": "Open on the specific moment the problem was noticed, follow what was tried, land on what was built and why it is shaped the way it is." },
+    { "id": "objection-handling", "name": "Objection handling", "shape": "Name the viewer's real objection out loud in the first five seconds, take it seriously, then dismantle it with one piece of evidence." },
+    { "id": "question-hook", "name": "Question hook", "shape": "Ask a question the viewer cannot answer, withhold the answer while building the stakes, pay it off in the last third." },
+    { "id": "numbers-ladder", "name": "Numbers ladder", "shape": "Climb a ladder of numbers, each one bigger or smaller than the last, until the scale of the thing is undeniable, then name the cause." },
+    { "id": "contrarian-take", "name": "Contrarian take", "shape": "Argue against the obvious solution everyone reaches for, show its hidden cost, then offer the unobvious one." }
+  ],
+
+  "openingGambits": [
+    { "id": "hard-number", "how": "Open on a single number with no setup. The number is the first thing heard and the first thing seen." },
+    { "id": "cold-question", "how": "Open with a direct question to the viewer, answered nowhere in the first ten seconds." },
+    { "id": "false-assumption", "how": "State something the viewer already believes as if agreeing, then break it on the next line." },
+    { "id": "in-media-res", "how": "Open mid-action, mid-sentence, as if the viewer has walked in on something already happening." },
+    { "id": "sensory-detail", "how": "Open on one very specific physical detail — a sound, a posture, an object — and widen out from it." },
+    { "id": "direct-address", "how": "Name the viewer and their situation in the first clause, so they know immediately it is about them." },
+    { "id": "contradiction", "how": "Put two true statements side by side that cannot both be comfortable, and let the tension carry the first ten seconds." },
+    { "id": "micro-story", "how": "Open on one named person at one moment in time, and stay with them until the problem is felt." },
+    { "id": "stat-slam", "how": "Three numbers in three seconds, each one landing on a hard cut, before a word of explanation." },
+    { "id": "sound-first", "how": "Open on a sound the viewer recognises, with the picture arriving a beat late." }
+  ]
+}

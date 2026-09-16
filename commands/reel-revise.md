@@ -27,6 +27,13 @@ affected frames, re-render. With no folder given, use the most recent reel and s
   every anchor in the reel is pinned to word positions that have just moved.
 - **A generated photo** — regenerate that one asset with `/reel-assets`, passing `--ref` if it
   has to match a person already in the reel.
+- **The whole look** — "make it feel darker", "this is too papery", "can it look like the
+  last one". A restyle is not a rebuild. `BACKDROP` and `CAMERA` in `src/look.ts` re-skin
+  every scene at once, and a scene's entry in `SCENE_TYPE_ANIM` changes how its type arrives.
+  For a genuinely different direction, draw a new one — `node scripts/direction.mjs
+  --project .` (add `--art <id>` if they named a style, or `--seed <n>` for a look they liked
+  before) — then update `look.ts` from the new `direction.json`. The scenes themselves usually survive untouched; check the transitions
+  still come from the new art direction's cut palette.
 
 **Then**
 

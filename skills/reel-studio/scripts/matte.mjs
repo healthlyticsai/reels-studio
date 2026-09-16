@@ -3,15 +3,21 @@
  * trims the transparent margin so each cutout sits tight in its box.
  *
  * Gemini returns JPEG with no alpha channel, so generate-assets.mjs renders every
- * subject against a flat #FF00FF backdrop and we remove it here. Assets marked
- * `kind: texture` in plan.json are meant to stay opaque and are skipped.
+ * subject against a flat #FF00FF backdrop and we remove it here.
+ *
+ * Three kinds are routed differently, from plan.json's manifest:
+ *   texture, environment  full-bleed plates, meant to stay opaque — skipped
+ *   symbol                flat single-colour shapes — handed to matte-ink.mjs,
+ *                         which builds alpha from luminance so anti-aliased
+ *                         edges cannot keep a magenta fringe
  *
  * Usage:
- *   node scripts/matte.mjs                  # everything except textures
+ *   node scripts/matte.mjs                  # everything in the manifest
  *   node scripts/matte.mjs doctor-desk.png  # just these
  */
 import fs from "fs";
 import path from "path";
+import { execFileSync } from "child_process";
 import { Jimp } from "jimp";
 
 const DIR = path.join(process.cwd(), "public", "art");
@@ -23,20 +29,19 @@ const PAD = 4;
  */
 const KIT_ART = new Set(["paper-grain.png"]);
 
-/** Textures are backgrounds, not cutouts — keying them would eat the image. */
-const skipList = () => {
+const manifest = () => {
   try {
-    const plan = JSON.parse(fs.readFileSync("plan.json", "utf8"));
-    return new Set([
-      ...KIT_ART,
-      ...(plan.assetManifest ?? [])
-        .filter((a) => a.kind === "texture")
-        .map((a) => `${a.name}.png`),
-    ]);
+    return JSON.parse(fs.readFileSync("plan.json", "utf8")).assetManifest ?? [];
   } catch {
-    return KIT_ART;
+    return [];
   }
 };
+
+const byKind = (...kinds) =>
+  new Set(manifest().filter((a) => kinds.includes(a.kind)).map((a) => `${a.name}.png`));
+
+/** Full-bleed plates are backgrounds, not cutouts — keying them eats the image. */
+const skipList = () => new Set([...KIT_ART, ...byKind("texture", "environment")]);
 
 const matte = async (name) => {
   const img = await Jimp.read(path.join(DIR, name));
@@ -113,11 +118,24 @@ const matte = async (name) => {
 };
 
 const skip = skipList();
-const names = process.argv.slice(2).length
-  ? process.argv.slice(2)
+const inks = byKind("symbol");
+const explicit = process.argv.slice(2);
+const names = explicit.length
+  ? explicit
   : fs.readdirSync(DIR).filter((f) => f.endsWith(".png") && !skip.has(f)).sort();
 
 for (const n of names) {
+  // Flat shapes get alpha from luminance instead; chroma-keying them fringes.
+  if (inks.has(n)) {
+    try {
+      execFileSync(process.execPath, [path.join(import.meta.dirname, "matte-ink.mjs"), n], {
+        stdio: "inherit",
+      });
+    } catch (err) {
+      console.log("ERR", n, err.message);
+    }
+    continue;
+  }
   try {
     console.log("OK ", await matte(n));
   } catch (err) {

@@ -1,13 +1,21 @@
 /**
- * Generates the collage artwork listed in plan.json's assetManifest.
+ * Generates the artwork listed in plan.json's assetManifest.
+ *
+ * The art direction is not hard-coded here. It is read from direction.json, which
+ * direction.mjs drew for this reel — so the same prompt produces a riso print in
+ * one reel and a low-key night photograph in the next, and two reels never share
+ * a palette by accident. If direction.json is missing, a neutral documentary
+ * direction is used.
  *
  * Gemini cannot emit an alpha channel — asked for transparency it paints a fake
- * checkerboard into the pixels. So every prompt is rendered against a flat magenta
- * backdrop that matte.mjs keys out afterwards.
+ * checkerboard into the pixels. So anything that has to sit on top of a scene is
+ * rendered against a flat magenta backdrop that matte.mjs keys out afterwards.
+ * Textures and environments are full-bleed and skip the chroma step entirely.
  *
  * Usage:
  *   node scripts/generate-assets.mjs                 # everything in the manifest
  *   node scripts/generate-assets.mjs doctor-desk     # just these
+ *   node scripts/generate-assets.mjs --missing       # only what is not on disk yet
  *   node scripts/generate-assets.mjs payoff --ref doctor-desk.png
  */
 import fs from "fs";
@@ -17,40 +25,84 @@ import { requireKey } from "./env.mjs";
 const MODEL = "gemini-3-pro-image";
 const OUT = path.join(process.cwd(), "public", "art");
 const key = requireKey(process.cwd());
+const CONCURRENCY = 3;
 
-/** Shared art direction, so every cutout belongs to the same collage. */
-const CUTOUT = [
-  "Editorial magazine collage cutout of the subject, placed on a completely flat, solid, uniform pure magenta background (hex #FF00FF) that fills the entire frame edge to edge.",
+/* ── Art direction ───────────────────────────────────────────────────────── */
+
+const FALLBACK = {
+  imageDirection:
+    "Slightly desaturated documentary photography, cool neutral grade, soft even light, gentle film grain, crisp detail.",
+  propDirection: "Object photographed straight on under soft even light, neutral grade.",
+};
+
+const direction = (() => {
+  try {
+    return JSON.parse(fs.readFileSync("direction.json", "utf8")).artDirection;
+  } catch {
+    return FALLBACK;
+  }
+})();
+
+/** Chroma boilerplate, appended to anything that has to be cut out. */
+const CHROMA = [
+  "Place the subject on a completely flat, solid, uniform pure magenta background (hex #FF00FF) filling the entire frame edge to edge.",
   "The magenta is a chroma-key backdrop: absolutely no magenta anywhere on the subject, no shadows or reflections cast onto the backdrop, no gradient or vignette in the backdrop.",
-  "Clean crisp cutout edge with a subtle 12px pure-white paper border around the subject, as if scissor-cut from a printed page.",
-  "Slightly desaturated documentary photography, cool neutral grade, soft even studio light, gentle film grain.",
-  "No text, no logos, no watermarks, no user interface.",
   "Shot straight on, subject fully inside the frame with generous margin, nothing cropped at the edges.",
 ].join(" ");
 
-const TEXTURE = [
-  "Flat top-down scan, evenly lit, seamless and tileable, no shadows, no text, no people.",
-].join(" ");
+const NO_TEXT = "No text, no logos, no watermarks, no user interface elements.";
+
+/** The direction each kind of asset gets, on top of its own prompt. */
+const directionFor = (kind) => {
+  switch (kind) {
+    case "texture":
+      return `${direction.imageDirection} Flat top-down scan of the surface, evenly lit, seamless and tileable, no shadows, no people. ${NO_TEXT}`;
+    case "environment":
+      return `${direction.imageDirection} A wide establishing view of the place with no one in the foreground, composed so type can sit over the upper third. ${NO_TEXT}`;
+    case "symbol":
+      return `A single flat solid-black graphic shape on a pure white background, no gradients, no shading, no outline, no texture, hard clean edges, centred with generous margin. ${NO_TEXT}`;
+    case "prop":
+      return `${direction.propDirection} ${CHROMA} ${NO_TEXT}`;
+    default:
+      return `${direction.imageDirection} ${CHROMA} ${NO_TEXT}`;
+  }
+};
+
+/* ── Arguments ───────────────────────────────────────────────────────────── */
 
 const argv = process.argv.slice(2);
 const refIndex = argv.indexOf("--ref");
 const refFile = refIndex === -1 ? null : argv[refIndex + 1];
-const wanted = argv.slice(0, refIndex === -1 ? undefined : refIndex);
+const onlyMissing = argv.includes("--missing");
+const wanted = argv
+  .slice(0, refIndex === -1 ? undefined : refIndex)
+  .filter((a) => !a.startsWith("--"));
 
 const plan = JSON.parse(fs.readFileSync("plan.json", "utf8"));
 const manifest = plan.assetManifest ?? [];
-const queue = wanted.length ? manifest.filter((a) => wanted.includes(a.name)) : manifest;
+
+let queue = wanted.length ? manifest.filter((a) => wanted.includes(a.name)) : manifest;
+if (onlyMissing) queue = queue.filter((a) => !fs.existsSync(path.join(OUT, `${a.name}.png`)));
 
 if (queue.length === 0) {
-  console.error(`No matching assets. Manifest has: ${manifest.map((a) => a.name).join(", ")}`);
+  console.error(
+    wanted.length
+      ? `No matching assets. Manifest has: ${manifest.map((a) => a.name).join(", ")}`
+      : "Nothing to generate.",
+  );
   process.exit(1);
 }
 
 fs.mkdirSync(OUT, { recursive: true });
 
+console.log(`Art direction: ${direction.name ?? "neutral documentary"}`);
+console.log(`Generating ${queue.length} assets, ${CONCURRENCY} at a time.\n`);
+
+/* ── Generation ──────────────────────────────────────────────────────────── */
+
 const generate = async (asset) => {
-  const direction = asset.kind === "texture" ? TEXTURE : CUTOUT;
   const parts = [];
+  const art = directionFor(asset.kind);
 
   // A reference image keeps a person recognisably the same across scenes, which
   // is what makes a before/after callback land.
@@ -63,10 +115,10 @@ const generate = async (asset) => {
       },
     });
     parts.push({
-      text: `Using the person in the reference image as the exact same individual — same face, same hair, same wardrobe — ${asset.prompt} ${direction}`,
+      text: `Using the person in the reference image as the exact same individual — same face, same hair, same wardrobe — ${asset.prompt} ${art}`,
     });
   } else {
-    parts.push({ text: `${asset.prompt} ${direction}` });
+    parts.push({ text: `${asset.prompt} ${art}` });
   }
 
   const res = await fetch(
@@ -92,16 +144,41 @@ const generate = async (asset) => {
 
   const file = path.join(OUT, `${asset.name}.png`);
   fs.writeFileSync(file, Buffer.from(image.inlineData.data, "base64"));
-  return `${asset.name}.png  ${(fs.statSync(file).size / 1024).toFixed(0)}KB`;
+  return `${asset.name}.png  ${asset.kind}  ${(fs.statSync(file).size / 1024).toFixed(0)}KB`;
 };
 
-for (const asset of queue) {
-  try {
-    console.log("OK ", await generate(asset));
-  } catch (err) {
-    console.log("ERR", asset.name, err.message);
+// A manifest of fifteen-plus assets is slow one at a time and gets rate-limited
+// all at once, so run a small pool. One retry covers the usual transient 429.
+const pending = [...queue];
+const failed = [];
+
+const worker = async () => {
+  while (pending.length) {
+    const asset = pending.shift();
+    for (let attempt = 1; attempt <= 2; attempt++) {
+      try {
+        console.log("OK ", await generate(asset));
+        break;
+      } catch (err) {
+        if (attempt === 2) {
+          console.log("ERR", asset.name, err.message);
+          failed.push(asset.name);
+        } else {
+          await new Promise((r) => setTimeout(r, 3000));
+        }
+      }
+    }
   }
-}
+};
+
+await Promise.all(new Array(CONCURRENCY).fill(0).map(worker));
+
+const symbols = queue.filter((a) => a.kind === "symbol").map((a) => `${a.name}.png`);
 
 console.log("\nNow run: node scripts/matte.mjs");
-console.log("Flat single-colour shapes (ink blots, silhouettes) need matte-ink.mjs instead.");
+if (symbols.length) {
+  console.log(`  (it will route these flat shapes through matte-ink: ${symbols.join(", ")})`);
+}
+if (failed.length) {
+  console.log(`\nFailed, rerun with: node scripts/generate-assets.mjs ${failed.join(" ")}`);
+}

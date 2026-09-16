@@ -33,12 +33,20 @@ SKILL_DIR="${CLAUDE_PLUGIN_ROOT}/skills/reel-studio"
    existing folder — if the slug is taken, ask whether to revise that reel instead.
 3. Brief: `node "$SKILL_DIR/scripts/brief.mjs" --topic "..." --notes "..." --project ./<slug>`
 
+   That one command draws a creative direction for this reel, researches the topic with web
+   grounding, then writes the plan against both. It takes a couple of minutes. Pass everything
+   the person told you through `--notes` — it reaches the research pass as well as the brief.
+
+   Add `--seconds 45` for a different length, `--art <id>` or `--arc <id>` if they asked for a
+   specific style or structure, `--seed <n>` to reproduce a look from an earlier reel.
+   `node "$SKILL_DIR/scripts/direction.mjs" --list` prints every option by id.
+
 **Then show them the whole plan**
 
-`brief.mjs` finishes by printing a storyboard digest: the voiceover script verbatim, every
-scene shot by shot with its headline and the words each beat lands on, the cuts between
-scenes, the artwork to be generated, anything flagged for review, and the two audio files
-you need back.
+`brief.mjs` finishes by printing a storyboard digest: the look drawn for this reel, what the
+research turned up, the voiceover script verbatim, every scene shot by shot with its headline
+and kinetic type treatment and the words each beat lands on, the cuts between scenes, the
+artwork to be generated, anything flagged for review, and the two audio files you need back.
 
 **Relay that digest in full.** Do not compress it to a summary, and do not tell them to open
 `PLAN.md` instead. They are approving a storyboard and then going away to record a voiceover
@@ -55,9 +63,14 @@ If a tool for publishing a shareable page or document is available, offer in one
 the plan up as one — storyboards usually need sign-off from someone outside this
 conversation. Do not build it unless they say yes.
 
-If they want changes, rerun `brief.mjs` with `--notes` for anything structural, or edit
+Call out the look explicitly. It is drawn fresh for every reel, it is the part people do not
+expect to be asked about, and it is the cheapest thing in the pipeline to change — `--redraw`
+for a different one, `--art <id>` if they name a style.
+
+If they want other changes, rerun `brief.mjs` with `--notes` for anything structural, or edit
 `PLAN.md` and `plan.json` together for small tweaks — keep the two in sync, the build scripts
-read the JSON. Re-print after a rerun with
+read the JSON. A rerun keeps the existing direction and research unless you pass `--redraw`,
+so fixing the script does not cost you the look. Re-print after a rerun with
 `node "$SKILL_DIR/scripts/storyboard.mjs" ./<slug>`.
 
 **Then stop**

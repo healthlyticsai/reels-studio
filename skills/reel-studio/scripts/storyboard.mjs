@@ -21,6 +21,17 @@ if (!fs.existsSync(planPath)) {
 
 const plan = JSON.parse(fs.readFileSync(planPath, "utf8"));
 const slug = path.basename(project);
+
+const readJson = (name) => {
+  try {
+    return JSON.parse(fs.readFileSync(path.join(project, name), "utf8"));
+  } catch {
+    return null;
+  }
+};
+
+const direction = readJson("direction.json");
+const research = readJson("research.json");
 const out = [];
 const say = (line = "") => out.push(line);
 
@@ -55,6 +66,45 @@ say();
 wrap(plan.logline).forEach(say);
 say();
 say(`Target length  ~${plan.durationSeconds}s        Scenes  ${plan.scenes?.length ?? 0}        Folder  ./${slug}/`);
+
+/* ── The look, drawn fresh for this reel ─────────────────────────────────── */
+
+if (direction) {
+  rule("THE LOOK — drawn for this reel, different from the last one");
+  const field = (k, v) => wrap(v, 62, "             ").forEach((l, i) => say(i === 0 ? `  ${k.padEnd(11)}${l.trim()}` : l));
+
+  field("Art", `${direction.artDirection.name} — ${direction.artDirection.summary}`);
+  field("Arc", `${direction.narrativeArc.name}: ${direction.narrativeArc.shape}`);
+  field("Opens", direction.openingGambit.how);
+  field("Edit", `${direction.editLanguage.name} — ${direction.editLanguage.how}`);
+  field("Camera", `${direction.cameraLanguage.name} — ${direction.cameraLanguage.how}`);
+  field("Type", direction.typeSystems.map((t) => t.name).join(" · "));
+  field("Motifs", direction.motionMotifs.map((m) => m.name).join(" · "));
+  field("Cuts", direction.artDirection.transitions.join(", "));
+  say();
+  say(`  Not right? "redraw the look" gets a different one, or name a style —`);
+  say(`  ${direction.seed} is the seed that reproduces this exact draw.`);
+}
+
+if (research) {
+  rule("GROUNDED IN");
+  const counts = [
+    [`${(research.concreteFacts ?? []).length}`, "facts"],
+    [`${(research.visualMotifs ?? []).length}`, "visual motifs"],
+    [`${(research.humanMoments ?? []).length}`, "human moments"],
+    [`${(research.sources ?? []).length}`, "web sources"],
+  ];
+  say(`  ${counts.map(([n, l]) => `${n} ${l}`).join("   ·   ")}`);
+  if (research.surprising?.length) {
+    say();
+    say("  Worth knowing:");
+    for (const item of research.surprising.slice(0, 3)) {
+      wrap(item, 68, "      ").forEach((l, i) => say(i === 0 ? `    • ${l.trim()}` : l));
+    }
+  }
+  say();
+  say("  Full detail in RESEARCH.md.");
+}
 
 /* ── The script, first, because it is the expensive thing to get wrong ───── */
 
@@ -97,6 +147,9 @@ const transitionAfter = (id) => (plan.transitions ?? []).find((t) => t.from === 
     }
   }
 
+  if (s.typeSystem) say(`     type      ${s.typeSystem}${s.kineticNotes ? ` — ${s.kineticNotes}` : ""}`);
+  if (s.motionMotif) say(`     motif     ${s.motionMotif}`);
+  if (s.cameraNote) wrap(s.cameraNote, 62, "               ").forEach((l, k) => say(k === 0 ? `     camera    ${l.trim()}` : l));
   if (s.assets?.length) say(`\n     art       ${s.assets.join(", ")}`);
   if (s.layoutNotes) {
     say();
@@ -128,7 +181,10 @@ if (plan.cta) {
 /* ── Production notes ────────────────────────────────────────────────────── */
 
 rule("WHAT GETS MADE");
-say(`  Artwork    ${(plan.assetManifest ?? []).map((x) => x.name).join(", ") || "none"}`);
+const manifest = plan.assetManifest ?? [];
+const kinds = manifest.reduce((acc, a) => ({ ...acc, [a.kind]: (acc[a.kind] ?? 0) + 1 }), {});
+say(`  Artwork    ${manifest.length} assets — ${Object.entries(kinds).map(([k, n]) => `${n} ${k}`).join(", ")}`);
+wrap(manifest.map((x) => x.name).join(", "), 68, "             ").forEach(say);
 say(`  Sound      ${(plan.sfx ?? []).length} cues`);
 say(`  Cuts       ${(plan.transitions ?? []).map((t) => t.style).join(" → ") || "none"}`);
 

@@ -44,14 +44,34 @@ node scripts/matte.mjs
 node scripts/contact-sheet.mjs public/art /tmp/contact.png
 ```
 
+A manifest runs to twelve to eighteen assets, so start this early and write scenes while it
+runs. It generates three at a time; `--missing` picks up only what is not on disk yet.
+`matte.mjs` reads the manifest and routes each kind itself — chroma for cutouts and props,
+luminance for flat symbols, nothing for textures and environment plates.
+
 **Read that contact sheet.** An asset that comes back near-100% opaque was not keyed —
-regenerate it. Flat single-colour shapes need `matte-ink.mjs` instead.
+regenerate it.
+
+**Set the look before writing a line of scene code**
+
+Read `direction.json`. It holds the art direction, camera language, kinetic type systems and
+motion motifs drawn for this reel, and it is a spec rather than a mood board. Copy the three
+values it decides into `src/look.ts`: the backdrop variant, the camera mode, and the type
+animation for each scene from that scene's `typeSystem` in the plan.
+
+**No two adjacent scenes may share a type animation.** Listing them together in `look.ts` is
+what makes that easy to check, and it is the single most visible rule in the system.
 
 **Write the scenes — compose, do not rebuild**
 
 One file per scene in `src/scenes/`, built from the bundled kit. The typography, transitions
 and motion devices are already written and tested; re-deriving them burns effort better spent
 on the scene. `references/component-kit.md` is the API.
+
+Every scene has the same skeleton: `<Backdrop variant={BACKDROP} />` first, content wrapped in
+`<CameraMove mode={CAMERA} duration={...}>`, `<PaperTexture />` last. Take each scene's
+kinetic treatment and motion motif from what the plan assigned it, and take transitions from
+the art direction's cut palette rather than reaching for `tornPaper` every time.
 
 Read `references/production-playbook.md` before the first scene. The rules that are cheap now
 and expensive later: content stays above y=1620 or it renders under a caption, headlines are
