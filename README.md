@@ -43,6 +43,7 @@ and held out against what your last few reels used. See
 - [Command reference](#command-reference)
 - [Writing a good topic](#writing-a-good-topic)
 - [Revising a reel](#revising-a-reel)
+- [How long a render takes](#how-long-a-render-takes)
 - [What ends up in the folder](#what-ends-up-in-the-folder)
 - [Using a different brand](#using-a-different-brand)
 - [Changing the house style](#changing-the-house-style)
@@ -390,8 +391,9 @@ From here it is hands-off. Claude will:
 6. Render test frames and look at them, fix what is wrong, and look again
 7. Render the video
 
-Expect **15–30 minutes** end to end, most of it rendering. Claude will show you the finished
-mp4 when it is done, along with a note of anything it changed from the plan.
+Expect **15–30 minutes** end to end. Most of that is generating artwork and the review loop;
+the video render itself is two to four minutes. Claude will show you the finished mp4 when it
+is done, along with a note of anything it changed from the plan.
 
 ---
 
@@ -514,6 +516,51 @@ sound levels — needs no re-record.
 
 ---
 
+## How long a render takes
+
+A 60-second reel is about 1,800 frames at 1080×1920, and each one is drawn in a real browser.
+On an M1 Pro that is **two to four minutes**. Around nine tenths of it is drawing frames;
+encoding the video is a short tail at the end.
+
+If a render is taking dramatically longer than that, it is almost always memory — not the
+reel, not the settings. Renders run several browser tabs at once, each wanting roughly a
+gigabyte. When the machine runs out, it starts swapping to disk, and a render does not get
+gradually slower at that point, it falls off a cliff: every frame becomes disk-bound.
+
+Check it directly:
+
+```bash
+sysctl vm.swapusage
+```
+
+If `used` is close to `total`, the machine is out of memory. **Closing Chrome is worth more
+than any setting.** A browser with a lot of tabs open can easily hold 6GB.
+
+Claude now sizes the render to whatever the machine actually has free, so it backs off on its
+own rather than piling on more tabs than there is memory for. While it runs you will see a
+heartbeat:
+
+```
+  [0m31s] rendering frames 433/1773 (24%)  eta 1m36s
+  [0m46s] rendering frames 680/1773 (38%)  eta 1m14s
+```
+
+That is the important part. A render that prints nothing looks identical to one that has hung,
+which is how a slow render turns into half an hour of waiting to find out. If it does go wrong
+it now stops itself and says what to try, rather than grinding on until you give up on it.
+
+**While you are still iterating**, a draft render is half scale and about a third quicker:
+
+> render me a draft so I can check the timing
+
+The motion and timing are identical; only the resolution drops. Worth it when the question is
+"does this land?" rather than "is this ready to post?".
+
+**The first render in a brand-new reel folder is slower** — a couple of extra minutes while
+the project builds itself for the first time. That happens once per reel, not every time.
+
+---
+
 ## What ends up in the folder
 
 ```
@@ -530,6 +577,9 @@ one-click-referrals/
   src/timing.ts           the timeline, pinned to your voiceover
   out/one-click-referrals.mp4    the reel
 ```
+
+`npm run render` in that folder re-renders it, and `npm run draft` does a quick half-scale
+pass.
 
 Everything is self-contained. You can zip the folder and hand it to someone else, or delete
 it when the reel has shipped — the finished mp4 is the only thing you need to keep.
@@ -697,7 +747,9 @@ For Copilot, `install-copilot.sh --uninstall` then run it again.
 | A generated photo looks wrong or has grey checkerboard squares | Ask Claude to regenerate that one asset. Gemini cannot make transparent images and occasionally ignores the workaround. |
 | Text hidden behind the captions | Ask Claude to fix it — scene content has to stay clear of the bottom band. |
 | The speech model download stalls | Ask Claude to retry it. On a slow connection it sometimes times out partway. |
-| Rendering feels very slow | Normal for a 60-second reel. Close other heavy apps. |
+| Rendering feels very slow | Check `sysctl vm.swapusage` — if swap is near full the machine is out of memory, and closing Chrome helps more than any setting. See [How long a render takes](#how-long-a-render-takes). |
+| A render seems stuck with no output | It now prints progress every 15 seconds and gives up with an explanation rather than hanging. If you are on an older version, update — that was the fix. |
+| The very first render in a new reel is slow | Expected, once per reel, while the project builds itself. Later renders reuse it. |
 | Two reels came out looking alike | Say "give me a different look" and Claude redraws it. If it keeps happening, the history file at `~/.reel-studio/history.json` may have been cleared — it is what holds recent looks out of the pool. |
 | The look is not what you wanted | Name what you want: "make it look like a blueprint schematic", "use the dark data-room one". Claude will list the options if you ask. |
 | Asset generation takes a long time | Expected — a reel is twelve to eighteen images now. It runs three at a time. Regenerate only what failed rather than the whole set. |
@@ -728,6 +780,11 @@ skills/reel-studio/
     template/            the component kit copied into every new project
 ```
 
+Projects are scaffolded without Tailwind. The kit is inline styles throughout and used zero
+utility classes; all Tailwind contributed was its Preflight reset, which
+`assets/template/src/index.css` now carries explicitly — verified pixel-identical. Dropping it
+also removes the bundler override that forced Remotion off its default bundler.
+
 ### How the pieces fit
 
 - **`scripts/direction.mjs`** draws this reel's look from
@@ -750,6 +807,12 @@ skills/reel-studio/
   environment plates stay opaque. `matte.mjs` routes all three from the manifest.
 - **`scripts/transcribe.mjs`** runs whisper.cpp and prints the sentence table the timeline is
   derived from.
+- **`scripts/render.mjs`** replaces a fixed `--concurrency=6`, which was the reason renders
+  sometimes took half an hour: six 1080x1920 Chromium tabs need memory a working laptop often
+  does not have, and past that point a render is disk-bound rather than just slow. It sizes
+  concurrency from free memory and swap pressure, heartbeats on its own timer (the cold bundle
+  is silent for minutes, which is exactly when you need to see something), and stops with a
+  diagnosis at a stall or a ceiling.
 - **`assets/template/src/components/`** is the shared kit — fourteen backdrops and five
   camera moves (`Backdrop.tsx`), typography with eight entrances and five emphasis marks
   (`Type.tsx`), thirteen kinetic type systems (`KineticType.tsx`), fourteen scene transitions

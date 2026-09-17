@@ -278,11 +278,30 @@ Render one still per major beat — roughly ten to fifteen across the reel — a
 one**. Fix what you see, then re-check. Expect two or three rounds; the first pass always has
 something overlapping.
 
+Stills are two or three seconds each once the bundle is warm. The first one in a fresh project
+builds the bundle and can take a couple of minutes — normal, and once only. A still cannot
+show motion, so when the question is timing rather than layout, use
+`node scripts/render.mjs --draft` for the whole reel at half scale.
+
 **7. Render.**
 
 ```bash
-npx remotion render Reel out/<topic-slug>.mp4 --codec=h264 --crf=20 --concurrency=6
+node scripts/render.mjs
 ```
+
+Use this rather than calling `npx remotion render` yourself. It reads the machine's actual
+free memory and swap pressure and sizes concurrency from them, prints a heartbeat with an ETA
+every fifteen seconds, and stops itself with a diagnosis instead of running for half an hour.
+
+**Run it in the background and relay the heartbeat.** A render with no visible output is
+indistinguishable from a hung one, and that is the single most common way this step goes
+wrong for a person watching it.
+
+Expect two to four minutes for a 60-second reel on a laptop, nearly all of it rendering
+frames rather than encoding them. If it is dramatically slower than that, the machine is out
+of memory — `sysctl vm.swapusage` will say so, and closing a browser is worth more than any
+flag. `node scripts/render.mjs --draft` is half scale and about a third quicker, for when you
+are checking motion rather than delivering.
 
 **8. Check the delivered file, not just the composition.** They can differ, and the mp4 is
 what ships.

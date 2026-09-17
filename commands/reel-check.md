@@ -24,6 +24,9 @@ here, not by reading code.
    ```bash
    npx remotion still Reel /tmp/chk/f<N>.png --frame=<N> --scale=0.4
    ```
+   Stills are cheap — two or three seconds each once the bundle is warm. The *first* one in a
+   fresh project pays for the bundle and can take a couple of minutes; that is normal and
+   happens once.
 3. **Read every PNG.** Not a sample — every one.
 
 **What to look for**
@@ -36,6 +39,10 @@ here, not by reading code.
   not reflow around each other.
 - Cutouts with a magenta fringe, or a grey checkerboard, meaning the matte failed.
 - A scene where nothing is moving except the foreground.
+
+A still cannot show you motion. When the question is whether the timing lands rather than
+whether the layout holds, `node scripts/render.mjs --draft` gives you the whole reel at half
+scale in well under half the time of a full render.
 
 **Then**
 

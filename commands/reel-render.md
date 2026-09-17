@@ -18,11 +18,26 @@ takes minutes; a still takes seconds.
 
 1. `cd` into the reel folder. With none given, use the most recent one.
 2. ```bash
-   npx remotion render Reel out/<slug>.mp4 --codec=h264 --crf=20 --concurrency=6
+   node scripts/render.mjs
    ```
-   `--crf=20` is the default. `18` is visually identical for this content and roughly 15%
-   larger; `22–24` if the file has to fit a tighter upload limit. Drop `--concurrency` if the
-   machine is swapping.
+   Do **not** call `npx remotion render` directly. `render.mjs` sizes concurrency to the
+   machine's actual free memory, prints a heartbeat with an ETA every fifteen seconds, and
+   stops itself with a diagnosis rather than running for half an hour — a fixed
+   `--concurrency` on a machine that is already swapping is what turns a two-minute render
+   into a thirty-minute one.
+
+   Run it in the **background** and report the heartbeat as it arrives, so the person can see
+   it working. Expect two to four minutes for a 60-second reel.
+
+   `node scripts/render.mjs --draft` is half scale and around a third quicker — use it when
+   the point is to check motion rather than to deliver.
+
+**If it is slow or gives up**
+
+The script prints the ladder to work through, and the first rung is the one that matters:
+check `sysctl vm.swapusage`. Swap near full means the machine is out of memory, and closing a
+browser is worth more than any flag. Do not simply rerun it with a longer `--max-minutes` and
+hope; say what the machine is doing.
 
 **Then check the delivered file, not the composition**
 

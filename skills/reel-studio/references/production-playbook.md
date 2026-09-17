@@ -215,6 +215,34 @@ When the render finishes, check the **delivered mp4** rather than trusting the c
 node scripts/contact-sheet.mjs --video out/reel.mp4 /tmp/final.png
 ```
 
+### What a render should cost
+
+A 60-second 1080x1920 reel is roughly 1,800 frames and takes **two to four minutes** on a
+laptop. Around nine tenths of that is rendering frames in headless Chromium; encoding is a
+small tail. That matters because it tells you which knobs are real: resolution and
+concurrency change the cost, codec settings barely do.
+
+Render with `node scripts/render.mjs`, not with `npx remotion render` directly. The fixed
+`--concurrency=6` it replaces was the original sin here — each 1080x1920 tab wants about a
+gigabyte, so six of them need memory a working laptop often does not have. Past that point a
+render does not get gradually slower, it falls off a cliff, because every frame becomes
+disk-bound. `render.mjs` sizes concurrency from free memory and current swap pressure instead.
+
+The other half is knowing. A silent render is indistinguishable from a hung one, which is how
+a slow render becomes a half-hour of someone staring at nothing. So it prints a heartbeat with
+an ETA on its own timer — not off the child's output, because the phase that most needs it,
+the first cold bundle, prints nothing for over two minutes — warns as soon as the projection
+looks wrong, and gives up with a diagnosis at a ceiling rather than grinding on.
+
+If a render is genuinely slow, check the machine before reaching for a flag:
+
+```bash
+sysctl vm.swapusage
+```
+
+Swap near full means the machine is out of memory. Closing a browser is worth more than
+anything you can pass to the renderer.
+
 Both bugs found in the reel this skill was built from — a supporting line colliding with a
 card label, and a stat row sitting under a headline — were invisible in code, invisible in
 the scenes read individually, and immediately obvious in the contact sheet.

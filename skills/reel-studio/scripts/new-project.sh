@@ -46,7 +46,8 @@ cp -R "$SKILL_DIR/assets/art/." public/art/ 2>/dev/null || true
 # restyle later can redraw the direction from inside the folder. direction.mjs resolves the
 # catalog relative to its own parent, which is why creative-systems.json comes along.
 for f in generate-assets.mjs matte.mjs matte-ink.mjs transcribe.mjs contact-sheet.mjs \
-         check-audio.mjs storyboard.mjs direction.mjs research.mjs gemini.mjs env.mjs; do
+         check-audio.mjs storyboard.mjs direction.mjs research.mjs gemini.mjs \
+         render.mjs env.mjs; do
   cp "$SKILL_DIR/scripts/$f" scripts/
 done
 cp "$SKILL_DIR/references/creative-systems.json" references/
@@ -60,17 +61,15 @@ scripts/vo16k.wav
 .DS_Store
 GI
 
-# Rspack does not emit a bundle alongside the Tailwind override in this setup,
-# so renders fail with a missing bundle.js. Webpack works.
+# No Tailwind: the component kit is inline styles throughout and used exactly zero
+# utility classes, so the framework was only ever contributing its Preflight reset
+# — which src/index.css now carries explicitly. Removing the bundler override also
+# lets Remotion use its default bundler, which the override used to break.
 cat > remotion.config.ts <<'CFG'
 import { Config } from "@remotion/cli/config";
-import { enableTailwind } from "@remotion/tailwind-v4";
 
-// Rspack is intentionally off: with the Tailwind bundler override it reports
-// 100% bundling and then emits no bundle.js, so every render fails.
 Config.setVideoImageFormat("jpeg");
 Config.setOverwriteOutput(true);
-Config.overrideBundlerConfig(enableTailwind);
 CFG
 
 # Pin the extra packages now so phase 3 is a single `npm install`, and so the
@@ -94,11 +93,18 @@ p.dependencies = {
   // the pipeline needs nothing beyond Node.
   jimp: '1.6.1',
 };
+// Tailwind came in with the scaffold and is unused — see remotion.config.ts.
+delete p.dependencies['@remotion/tailwind-v4'];
+delete p.dependencies['@remotion/tailwind'];
+delete p.dependencies.tailwindcss;
 p.scripts = {
   ...p.scripts,
   transcribe: 'node scripts/transcribe.mjs',
   art: 'node scripts/generate-assets.mjs && node scripts/matte.mjs',
-  render: 'remotion render Reel out/$SLUG.mp4 --codec=h264 --crf=20 --concurrency=6',
+  // render.mjs sizes concurrency to the machine and will not sit there silently
+  // for half an hour; see its header for why a fixed --concurrency was wrong.
+  render: 'node scripts/render.mjs',
+  draft: 'node scripts/render.mjs --draft',
 };
 fs.writeFileSync('package.json', JSON.stringify(p, null, 2));
 "
@@ -110,5 +116,7 @@ echo "  direction.json  <- the look drawn for this reel (written by brief.mjs)"
 echo "  src/look.ts     <- copy the backdrop, camera and type anims here before building"
 echo "  src/components/ <- the component kit (already written, compose from it)"
 echo "  src/scenes/     <- write one file per scene here"
+echo
+echo "Render with 'npm run render' (or 'npm run draft' while iterating)."
 echo
 echo "npm install has NOT run yet — that happens in phase 3, after the audio arrives."

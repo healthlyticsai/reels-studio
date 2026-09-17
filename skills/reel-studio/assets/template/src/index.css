@@ -1,1 +1,66 @@
-@import "tailwindcss";
+/*
+ * The few normalisations the component kit actually relies on.
+ *
+ * This used to be `@import "tailwindcss"`, which pulled the entire framework in
+ * for zero utility classes — the kit is inline styles throughout. What Tailwind
+ * was really contributing here was Preflight, and two of its rules matter:
+ * `line-height: 1.5`, which every panel, card and text block is implicitly sized
+ * against, and `box-sizing: border-box`. Dropping Tailwind without replacing
+ * those silently shortens every block of text in the reel.
+ *
+ * Keeping this explicit also lets Remotion use its default bundler again, and
+ * means nobody has to wonder why a video project depends on a CSS framework.
+ */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  border: 0 solid;
+}
+
+html {
+  line-height: 1.5;
+  -webkit-text-size-adjust: 100%;
+  -moz-tab-size: 4;
+  tab-size: 4;
+}
+
+body {
+  margin: 0;
+  line-height: inherit;
+}
+
+h1, h2, h3, h4, h5, h6, p, figure, blockquote, dl, dd {
+  margin: 0;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-size: inherit;
+  font-weight: inherit;
+}
+
+ol, ul, menu {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+img, svg, video, canvas {
+  display: block;
+  vertical-align: middle;
+}
+
+img, video {
+  max-width: 100%;
+  height: auto;
+}
+
+button, input, optgroup, select, textarea {
+  font-family: inherit;
+  font-size: 100%;
+  font-weight: inherit;
+  line-height: inherit;
+  color: inherit;
+  margin: 0;
+  padding: 0;
+}

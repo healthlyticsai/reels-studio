@@ -152,3 +152,38 @@ manifest is `cutout` or `prop`, so it was chroma-keyed. Fix the `kind` to `textu
 
 **A flat shape has a magenta fringe.** Its `kind` is not `symbol`. Fix the manifest rather
 than running `matte-ink.mjs` by hand, or the next regeneration repeats it.
+
+## Rendering
+
+**A render that takes far longer than two to four minutes.** Check the machine before
+anything else:
+
+```bash
+sysctl vm.swapusage
+```
+
+`used` close to `total` means it is out of memory and swapping, and a swapping render is
+disk-bound rather than merely slow — this is the difference between two minutes and thirty.
+Closing a browser is worth more than any flag. `render.mjs` already backs concurrency off when
+it sees swap pressure, but it cannot free memory that something else is holding.
+
+**`render.mjs` stopped itself.** It has two limits, because there are two failures. No output
+at all for 8 minutes means hung (`--stall-minutes`). Still going after 25 minutes means
+thrashing (`--max-minutes`). Both print the ladder to work through. Raising the ceiling and
+rerunning is the last resort, not the first — fix the memory instead.
+
+**It says "bundling" for two minutes on a new project.** Normal, once per project. Later
+renders and every still reuse the cached bundle and take seconds. Deleting
+`node_modules/.cache` forces it to happen again.
+
+**Hardware-accelerated encoding warnings.** Remotion refuses hardware acceleration whenever
+`--crf` is set, so `render.mjs` does not ask for it. Encoding is about a tenth of the wall
+time here, so anchoring quality to crf is the better trade. Nothing is wrong.
+
+**The mp4 is under 100KB.** `render.mjs` treats that as a failure and says so — Remotion
+reported success but wrote nothing usable, which normally means the composition resolved to
+zero frames. Check `TOTAL` in `src/timing.ts`.
+
+**Renders got slower after adding scenes.** Full-frame CSS `filter: blur()` is the most
+expensive thing in the kit, and several transitions use it. A reel with a blur running under
+every scene, rather than only across the cuts, will be noticeably slower to render.
