@@ -43,7 +43,7 @@ while [ $# -gt 0 ]; do
   esac
 done
 
-COMMANDS=(reel reel-build reel-assets reel-check reel-render reel-revise)
+COMMANDS=(reel reel-build reel-assets reel-check reel-render reel-revise demo demo-build)
 
 if [ "$ACTION" = "uninstall" ]; then
   for name in reel-studio "${COMMANDS[@]}"; do
@@ -154,7 +154,7 @@ fi
 
 echo
 echo "Installed into $TARGET"
-echo "  /reel  /reel-build  /reel-assets  /reel-check  /reel-render  /reel-revise"
+echo "  /reel  /reel-build  /reel-assets  /reel-check  /reel-render  /reel-revise  /demo  /demo-build"
 if [ "$PROMPTS" != "no" ]; then
   echo "Also mirrored as VS Code prompt files in:"
   echo "  $PROMPT_DIR"

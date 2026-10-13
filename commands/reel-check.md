@@ -29,6 +29,11 @@ here, not by reading code.
    happens once.
 3. **Read every PNG.** Not a sample — every one.
 
+**Demo projects** have no `Reel` composition. Render `Demo-16x9` and `Demo-9x16` into
+`out/stills/` instead (the Studio shows that folder), take frames from `timeline.json`, and
+also check that focus boxes land on their element and that the presenter bubble never covers
+one.
+
 **What to look for**
 
 - Anything below y≈1620 in the full frame, which is where captions sit.

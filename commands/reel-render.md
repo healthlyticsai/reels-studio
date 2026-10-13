@@ -9,6 +9,10 @@ Render the reel using the `reel-studio` skill.
 
 $ARGUMENTS
 
+**Demo projects** (a `src/demoTimeline.ts` exists) have two compositions. Use
+`node scripts/render.mjs --all` to render `Demo-16x9` and then `Demo-9x16`; the outputs are
+`out/<slug>-16x9.mp4` and `out/<slug>-9x16.mp4`. Check both contact sheets.
+
 **Before rendering**
 
 If the frames have not been reviewed since the last change, run `/reel-check` first. A render
