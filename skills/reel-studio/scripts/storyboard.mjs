@@ -58,6 +58,67 @@ const wrap = (text, width = 76, indent = "") => {
   return lines;
 };
 
+/* ── Demo mode ───────────────────────────────────────────────────────────── */
+
+// A demo's storyboard is about staging, not argument: which sentence plays over
+// which screenshot, where the camera goes, and when the presenter is on screen.
+if (plan.mode === "demo") {
+  const intake = readJson("intake.json") ?? {};
+  const screens = new Map((intake.screens ?? []).map((s) => [s.id, s]));
+  say(`${plan.title}`);
+  say("=".repeat(plan.title.length));
+  say();
+  wrap(plan.logline).forEach(say);
+  say();
+  say(`Demo · ${plan.scenes.length} scenes · ${plan.voiceover.wordCount} words (~${Math.round(plan.voiceover.wordCount / 2.5)}s) · renders 16:9 and 9:16 · ./${slug}/`);
+  if (direction) say(`Look  ${direction.artDirection.name}`);
+
+  rule(`SCRIPT — spoken exactly as written${intake.presenterEngine === "omni" ? ", voiced by Gemini Omni" : ""}`);
+  wrap(plan.voiceover.script, 74, "  ").forEach(say);
+
+  rule("SCENES");
+  plan.scenes.forEach((s, i) => {
+    const scr = s.screen ? screens.get(s.screen) : null;
+    const where = scr ? `${s.screen} (${scr.device ?? "desktop"}: ${scr.caption || scr.src})` : "—";
+    say(`  ${i + 1}. ${s.id.toUpperCase()}  ·  ${s.type}  ·  presenter ${s.avatar}  ·  screen ${where}`);
+    wrap(`"${(s.voiceoverSentences ?? []).join(" ")}"`, 70, "       ").forEach(say);
+    if (s.motion) say(`       laptop    ${s.motion}`);
+    if (s.headline?.text) say(`       headline  ${s.headline.text}${s.headline.emphasis ? `  [emphasis "${s.headline.emphasis}"]` : ""}`);
+    if (s.nextScreen?.screen) say(`       swap      → ${s.nextScreen.screen} on "${s.nextScreen.onWords}"`);
+    for (const item of s.list ?? []) say(`       list      ✱ ${item.text}  on "${item.onWords}"`);
+    for (const fo of s.focus ?? []) {
+      say(`       ${fo.action.padEnd(9)} on "${fo.onWords}"  box ${fo.box.map((v) => v.toFixed(2)).join(",")}${fo.label ? `  label "${fo.label}"` : ""}`);
+    }
+    const t = (plan.transitions ?? []).find((x) => x.from === s.id);
+    if (t) say(`       ↓ ${t.style}`);
+    say();
+  });
+
+  say(`  Closing card: "${plan.cta.headline}" · [${plan.cta.button}] · ${plan.cta.url}`);
+
+  const lists = [
+    ["SUGGESTED EDITS — not applied; say which to take", plan.suggestedEdits],
+    ["FLAGGED FOR REVIEW", plan.risks],
+    ["POSSIBLE PATIENT DATA — replace these screenshots before rendering", (plan.phiCheck ?? []).map((p) => `${p.screen}: ${p.concern}`)],
+    ["PLAN PROBLEMS — fix before approving", plan.validationErrors],
+  ];
+  for (const [label, list] of lists) {
+    if (!list?.length) continue;
+    rule(label);
+    for (const x of list) wrap(`- ${x}`, 74, "  ").forEach(say);
+  }
+
+  rule("NEXT");
+  const omni = intake.presenterEngine === "omni";
+  const provider = intake.voice?.provider === "elevenlabs" ? "ElevenLabs" : "Google Chirp 3 HD";
+  say("  Approve in the Studio UI (or say so here), then /demo-build " +
+    (omni ? "films the presenter with Gemini Omni" : `voices the script with ${provider}, lip-syncs the presenter with Higgsfield,`));
+  say("  " + (omni ? "(its audio becomes the voiceover) and renders both formats." : "and renders both formats."));
+  say("  Focus boxes are drawn over the screenshots in the Studio UI — check they land.");
+  console.log(out.join("\n"));
+  process.exit(0);
+}
+
 /* ── Header ──────────────────────────────────────────────────────────────── */
 
 say(`${plan.title}`);

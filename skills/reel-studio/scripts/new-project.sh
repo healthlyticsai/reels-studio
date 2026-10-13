@@ -4,28 +4,59 @@
 # brand config, brand logos and the per-project scripts. Never touches an
 # existing folder; reels are cheap and cross-contaminated projects are not.
 #
-# Usage: new-project.sh <topic-slug> [--brand /path/to/brand.config.json]
+# Demo mode is the one exception: the Studio UI writes the person's intake
+# (intake.json, the avatar, the screenshots) into ./<slug>/ first, and this
+# scaffolds around it without overwriting any of those files.
+#
+# Usage: new-project.sh <slug> [--brand /path/to/brand.config.json] [--mode reel|demo]
 
 set -euo pipefail
 
 SLUG="${1:-}"
 if [ -z "$SLUG" ]; then
-  echo "Usage: new-project.sh <topic-slug> [--brand path/to/brand.config.json]" >&2
+  echo "Usage: new-project.sh <slug> [--brand path/to/brand.config.json] [--mode reel|demo]" >&2
   exit 1
 fi
+shift
 
 SKILL_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 BRAND="$SKILL_DIR/assets/brand/brand.config.json"
-[ "${2:-}" = "--brand" ] && BRAND="$3"
+MODE="reel"
+while [ $# -gt 0 ]; do
+  case "$1" in
+    --brand) BRAND="$2"; shift 2 ;;
+    --mode) MODE="$2"; shift 2 ;;
+    *) echo "Unknown option: $1" >&2; exit 1 ;;
+  esac
+done
 
-if [ -e "$SLUG" ]; then
-  echo "Refusing to overwrite existing path: ./$SLUG" >&2
-  echo "Pick a different slug, or delete it first if it is a scrapped attempt." >&2
+if [ "$MODE" != "reel" ] && [ "$MODE" != "demo" ]; then
+  echo "--mode must be reel or demo" >&2
   exit 1
 fi
 
+INTAKE_ONLY=0
+if [ -e "$SLUG" ]; then
+  if [ "$MODE" = "demo" ] && [ -f "$SLUG/intake.json" ] && [ ! -f "$SLUG/package.json" ]; then
+    INTAKE_ONLY=1
+  else
+    echo "Refusing to overwrite existing path: ./$SLUG" >&2
+    echo "Pick a different slug, or delete it first if it is a scrapped attempt." >&2
+    exit 1
+  fi
+fi
+
 echo "Scaffolding Remotion project in ./$SLUG"
-npx --yes create-video@latest --yes --blank --no-tailwind "$SLUG" >/dev/null
+if [ "$INTAKE_ONLY" = 1 ]; then
+  # create-video will not write into a non-empty folder, so scaffold beside it
+  # and merge — never clobbering what the person uploaded.
+  TMP="$(mktemp -d)"
+  (cd "$TMP" && npx --yes create-video@latest --yes --blank --no-tailwind "$SLUG" >/dev/null)
+  cp -Rn "$TMP/$SLUG/." "$SLUG/"
+  rm -rf "$TMP"
+else
+  npx --yes create-video@latest --yes --blank --no-tailwind "$SLUG" >/dev/null
+fi
 
 cd "$SLUG"
 rm -f src/Composition.tsx
@@ -51,6 +82,20 @@ for f in generate-assets.mjs matte.mjs matte-ink.mjs transcribe.mjs contact-shee
   cp "$SKILL_DIR/scripts/$f" scripts/
 done
 cp "$SKILL_DIR/references/creative-systems.json" references/
+# Lets the copied scripts find the plugin's .env (see env.mjs).
+echo "$SKILL_DIR" > scripts/skill-dir.txt
+
+if [ "$MODE" = "demo" ]; then
+  # The demo template layers over the reel kit: same typography, backdrops and
+  # transitions, plus the screenshot, phone and avatar components and a
+  # data-driven timeline. The reel-only files would only confuse the build.
+  cp -R "$SKILL_DIR/assets/template-demo/src/." src/
+  rm -f src/Reel.tsx src/timing.ts src/Sfx.tsx src/scenes/SceneProblem.tsx src/scenes/SceneCta.tsx
+  mkdir -p public/avatar public/screens assets/avatar/slices assets/avatar/raw
+  for f in tts.mjs tts-providers.mjs omni-presenter.mjs widen-avatar.mjs trim-take.mjs demo-timing.mjs avatar-slices.mjs avatar-normalize.mjs image-size.mjs; do
+    cp "$SKILL_DIR/scripts/$f" scripts/
+  done
+fi
 
 cat > .gitignore <<'GI'
 node_modules/
@@ -78,8 +123,9 @@ node -e "
 const fs = require('fs');
 const p = JSON.parse(fs.readFileSync('package.json', 'utf8'));
 const core = p.dependencies.remotion;
+const demo = '$MODE' === 'demo';
 p.name = '$SLUG';
-p.description = 'Promo reel: $SLUG';
+p.description = (demo ? 'Product demo: ' : 'Promo reel: ') + '$SLUG';
 p.dependencies = {
   ...p.dependencies,
   '@remotion/media': core,
@@ -103,14 +149,31 @@ p.scripts = {
   art: 'node scripts/generate-assets.mjs && node scripts/matte.mjs',
   // render.mjs sizes concurrency to the machine and will not sit there silently
   // for half an hour; see its header for why a fixed --concurrency was wrong.
-  render: 'node scripts/render.mjs',
-  draft: 'node scripts/render.mjs --draft',
+  render: demo ? 'node scripts/render.mjs --all' : 'node scripts/render.mjs',
+  draft: demo ? 'node scripts/render.mjs --all --draft' : 'node scripts/render.mjs --draft',
+  ...(demo
+    ? {
+        tts: 'node scripts/tts.mjs',
+        timing: 'node scripts/demo-timing.mjs',
+        'avatar:slices': 'node scripts/avatar-slices.mjs',
+        'avatar:normalize': 'node scripts/avatar-normalize.mjs',
+      }
+    : {}),
 };
 fs.writeFileSync('package.json', JSON.stringify(p, null, 2));
 "
 
 echo
-echo "Created ./$SLUG"
+echo "Created ./$SLUG ($MODE)"
+if [ "$MODE" = "demo" ]; then
+  echo "  intake.json      <- the story, screenshots and presenter from the Studio UI"
+  echo "  public/screens/  <- the real product screenshots"
+  echo "  public/avatar/   <- the avatar still, then the lip-synced clips"
+  echo "  src/demoTimeline.ts <- the timeline (written by scripts/demo-timing.mjs)"
+  echo
+  echo "npm install has NOT run yet — that happens in the build, after approval."
+  exit 0
+fi
 echo "  assets/audio/   <- voiceover and music go here"
 echo "  direction.json  <- the look drawn for this reel (written by brief.mjs)"
 echo "  src/look.ts     <- copy the backdrop, camera and type anims here before building"
