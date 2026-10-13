@@ -1,0 +1,18 @@
+{
+  "name": "reels-studio",
+  "private": true,
+  "type": "module",
+  "description": "Reel Studio plugin. Root dependencies are for the Higgsfield API (Seedance) presenter engine and its examples.",
+  "scripts": {
+    "hf:example": "tsx index.ts"
+  },
+  "dependencies": {
+    "@higgsfield/client": "^0.2.6",
+    "dotenv": "^18.0.3"
+  },
+  "devDependencies": {
+    "@types/node": "^26.6.2",
+    "tsx": "^4.23.15",
+    "typescript": "^7.0.2"
+  }
+}
