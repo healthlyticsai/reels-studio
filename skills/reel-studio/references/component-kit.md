@@ -16,6 +16,7 @@ re-deriving it burns context that is better spent on the scene itself.
 - [Captions — `Captions.tsx`](#captions--captionstsx)
 - [Product UI — `BrowserFrame`, `ProductPanel`, `LegacyChart`](#product-ui)
 - [Props and paper — `Paper.tsx`, `Marks.tsx`, `SoundWave.tsx`, `DataPipe.tsx`](#props-and-paper)
+- [Demo mode — `Screenshot`, `PhoneFrame`, `AvatarClip`, `DemoScene`](#demo-mode)
 
 ---
 
@@ -294,3 +295,47 @@ the reusable part.
   (continuous sine ribbon).
 - `DataPipe.tsx` — `DataPipe` (glowing bezier pipeline with travelling packets) and
   `PipeLabel`. For showing data moving between two systems.
+
+---
+
+## Demo mode
+
+Demo projects (`new-project.sh --mode demo`) add these on top of the kit. Every one of them
+reads its layout from `useFormat()` (`src/format.tsx`), so the same scene renders correctly
+in `Demo-16x9` and `Demo-9x16`. Use `f.w`, `f.h`, `f.safe` and `f.isLandscape` in any custom
+scene. Do not write literal pixel positions.
+
+- `Screenshot`: a real screenshot shown exactly as captured, in `BrowserFrame` (desktop) or
+  `PhoneFrame` (mobile). `{ screen, focus, width, height, sceneDuration, enterAt }`. `focus`
+  entries are `{ at, until?, box: [x, y, w, h], action, label? }`, with boxes in the image's
+  own 0–1 coordinates:
+  - `zoom` moves the camera onto the box, and consecutive zooms travel directly from one to
+    the next.
+  - `highlight` dims everything else and rings the box.
+  - `click` glides a cursor in, clicks on `at` with a ripple and a click sound.
+  - `label` adds a callout pill that stays the same size through a zoom.
+- `PhoneFrame`: a plain device bezel. `{ width, height }`; `PHONE_PAD` is the bezel width.
+- `AvatarClip`: the lip-synced presenter, always muted. `{ avatar, width, height, shape:
+  "rect" | "circle", enterAt?, presenter? }`. It places `avatar.clip` at `avatar.clipFrom`,
+  which is where its audio slice was cut from `vo.mp3`. Until the clip exists it shows the
+  still, so layouts can be checked early. Passing `presenter` on a `rect` adds the name tag.
+- `DemoScene`: renders a whole scene from its `src/demoTimeline.ts` entry:
+  - `avatar`: the presenter full frame.
+  - `screen`: headline plus screenshot, with an optional presenter bubble placed in the
+    corner away from the first focus box.
+  - `split`: presenter beside the screenshot in 16:9, above it in 9:16.
+  - `cta`: logo, closing line, button, URL, and an optional bubble.
+- `BrowserFrame` gained `extension={false}` for real screenshots and exports `BROWSER_BAR`.
+- `LaptopFrame`: a CSS 3D laptop (lid with the real screenshot, hinged keyboard deck, desk
+  shadow). `useLaptopPose(motion, duration, enterAt)` drives it; the motions are `swingIn`,
+  `tiltBack`, `riseUp`, `float` and `front`. Use it through `Screenshot` with
+  `screen.device = "laptop"`. There, zooms move the screen's content rather than the camera,
+  so they land while the laptop is turned, and `nextScreen` cross-fades to a second image.
+- `GlowText` / `GlowList`: product-film type. Words resolve out of blur with a soft glow, and
+  emphasised words take the accent. `GlowList` builds a checklist item by item. Laptop scenes
+  and presenter captions use these automatically.
+- Backdrop `brandGlow`: the saturated brand gradient these scenes sit on.
+
+`src/demoTimeline.ts` is written by `scripts/demo-timing.mjs`. Change `plan.json` or
+`src/look.ts` and re-run rather than editing frames by hand.
+

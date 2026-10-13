@@ -29,11 +29,12 @@ export type BackdropVariant =
   | "cleanStudio"
   | "duotoneSplit"
   | "scrapbook"
-  | "terminalMono";
+  | "terminalMono"
+  | "brandGlow";
 
 /** True for the variants whose type has to be light, so scenes can branch once. */
 export const isDarkBackdrop = (v: BackdropVariant) =>
-  v === "nightData" || v === "chalkboard" || v === "neonGradient" || v === "terminalMono";
+  v === "nightData" || v === "chalkboard" || v === "neonGradient" || v === "terminalMono" || v === "brandGlow";
 
 const grain = (opacity: number) => (
   <Img
@@ -318,6 +319,40 @@ export const Backdrop: React.FC<{
         </AbsoluteFill>,
       );
       layers.push(<React.Fragment key="g">{grain(0.14)}</React.Fragment>);
+      break;
+
+    case "brandGlow":
+      // The product-video look: one saturated brand gradient, lit from a corner,
+      // with a soft pool of light that drifts. Made for a 3D laptop and glowing
+      // type to sit on — nothing in it competes with a screenshot.
+      base = { background: COLORS.primaryDeep };
+      layers.push(
+        <AbsoluteFill
+          key="grad"
+          style={{
+            background: `linear-gradient(160deg, ${COLORS.primary} 0%, ${COLORS.primaryDeep} 55%, #143A63 100%)`,
+          }}
+        />,
+        <AbsoluteFill
+          key="teal"
+          style={{
+            background: `radial-gradient(70% 55% at ${78 + wander * 0.5}% ${86 - wander * 0.3}%, ${COLORS.teal}88, transparent 70%)`,
+            scale: `${breathe}`,
+          }}
+        />,
+        <AbsoluteFill
+          key="light"
+          style={{
+            background: `radial-gradient(60% 45% at ${14 - wander * 0.4}% 8%, rgba(255,255,255,0.34), transparent 70%)`,
+          }}
+        />,
+        <AbsoluteFill
+          key="pool"
+          style={{
+            background: "radial-gradient(45% 38% at 50% 48%, rgba(95,211,205,0.18), transparent 75%)",
+          }}
+        />,
+      );
       break;
 
     case "terminalMono":

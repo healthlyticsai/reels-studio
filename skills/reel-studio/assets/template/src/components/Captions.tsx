@@ -2,7 +2,7 @@ import React from "react";
 import { interpolate, spring, useCurrentFrame, useVideoConfig } from "remotion";
 import type { Caption } from "@remotion/captions";
 import { BRAND, COLORS, FONT_STACK } from "../theme";
-import { FPS } from "../timing";
+import { useFormat } from "../format";
 
 /**
  * Whisper transcribes phonetically, so brand names come back wrong ("Waivs" as
@@ -39,6 +39,8 @@ const mergeTokens = (captions: Caption[]): Caption[] => {
 
     const isPunctuation = /^[,.\-?!:;]+$/.test(trimmed);
     const prev = out[out.length - 1];
+    // Whisper sometimes opens with a stray "-"; with nothing to attach to, drop it.
+    if (isPunctuation && !prev) continue;
 
     if (prev && (!startsNewWord || isPunctuation)) {
       out[out.length - 1] = {
@@ -89,7 +91,8 @@ export const buildPages = (captions: Caption[], maxWords = 4, maxGapMs = 420): C
 export const Captions: React.FC<{ pages: CaptionPage[] }> = ({ pages }) => {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
-  const nowMs = (frame / FPS) * 1000;
+  const { captions: layout } = useFormat();
+  const nowMs = (frame / fps) * 1000;
 
   // Hold each page until the next one starts (capped) so captions never flicker
   // out between phrases.
@@ -101,7 +104,7 @@ export const Captions: React.FC<{ pages: CaptionPage[] }> = ({ pages }) => {
 
   const holdUntil = Math.min(pages[index + 1]?.startMs ?? page.endMs + 700, page.endMs + 700);
 
-  const pageFrame = frame - (page.startMs / 1000) * FPS;
+  const pageFrame = frame - (page.startMs / 1000) * fps;
   const enter = spring({ frame: pageFrame + 2, fps, config: { damping: 18, stiffness: 220, mass: 0.5 } });
   const out = interpolate(nowMs, [holdUntil - 90, holdUntil], [1, 0], {
     extrapolateLeft: "clamp",
@@ -112,9 +115,9 @@ export const Captions: React.FC<{ pages: CaptionPage[] }> = ({ pages }) => {
     <div
       style={{
         position: "absolute",
-        left: 70,
-        right: 70,
-        bottom: 128,
+        left: layout.side,
+        right: layout.side,
+        bottom: layout.bottom,
         display: "flex",
         flexWrap: "wrap",
         justifyContent: "center",
@@ -134,7 +137,7 @@ export const Captions: React.FC<{ pages: CaptionPage[] }> = ({ pages }) => {
             style={{
               fontFamily: FONT_STACK,
               fontWeight: 800,
-              fontSize: 52,
+              fontSize: layout.fontSize,
               letterSpacing: -0.6,
               lineHeight: 1.12,
               padding: "8px 16px",

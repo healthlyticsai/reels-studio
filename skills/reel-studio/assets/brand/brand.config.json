@@ -4,7 +4,13 @@
   "url": "waivs.ai/products/waivs-scribe",
   "font": {
     "family": "Inter",
-    "weights": ["400", "500", "600", "700", "800"]
+    "weights": [
+      "400",
+      "500",
+      "600",
+      "700",
+      "800"
+    ]
   },
   "colors": {
     "primary": "#2C6BAC",
@@ -38,6 +44,11 @@
     "lockupWhite": "logo/lockup-white.png"
   },
   "captions": {
-    "misheardBrandTerms": { "waves": "Waivs", "oscar": "OSCAR", "soap": "SOAP" }
+    "misheardBrandTerms": {
+      "waves\\.ai": "waivs.ai",
+      "waves": "Waivs",
+      "oscar": "OSCAR",
+      "soap": "SOAP"
+    }
   }
 }

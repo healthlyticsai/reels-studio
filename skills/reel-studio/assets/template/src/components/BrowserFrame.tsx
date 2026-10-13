@@ -2,6 +2,9 @@ import React from "react";
 import { Img, staticFile } from "remotion";
 import { BRAND, COLORS, FONT_STACK } from "../theme";
 
+/** Height of the title bar, so a caller can size the content area exactly. */
+export const BROWSER_BAR = 74;
+
 /** macOS-style Chrome window used as the stage for the extension reveal. */
 export const BrowserFrame: React.FC<{
   width: number;
@@ -10,7 +13,17 @@ export const BrowserFrame: React.FC<{
   children?: React.ReactNode;
   style?: React.CSSProperties;
   extensionGlow?: number;
-}> = ({ width, height, url = "oscar.clinic.ca / encounter", children, style, extensionGlow = 0 }) => (
+  /** The brand extension button in the toolbar. Off for a real screenshot. */
+  extension?: boolean;
+}> = ({
+  width,
+  height,
+  url = "oscar.clinic.ca / encounter",
+  children,
+  style,
+  extensionGlow = 0,
+  extension = true,
+}) => (
   <div
     style={{
       width,
@@ -28,7 +41,7 @@ export const BrowserFrame: React.FC<{
     {/* Title bar */}
     <div
       style={{
-        height: 74,
+        height: BROWSER_BAR,
         flexShrink: 0,
         background: "#F8FAFC",
         borderBottom: `2px solid ${COLORS.slate200}`,
@@ -66,7 +79,7 @@ export const BrowserFrame: React.FC<{
       </div>
 
       {/* Extension toolbar slot */}
-      <div style={{ position: "relative", display: "flex", alignItems: "center" }}>
+      <div style={{ position: "relative", display: extension ? "flex" : "none", alignItems: "center" }}>
         {extensionGlow > 0 ? (
           <div
             style={{
