@@ -20,6 +20,8 @@
  *   node scripts/render.mjs --concurrency 2      # override the pick
  *   node scripts/render.mjs --stall-minutes 10   # patience for a silent render
  *   node scripts/render.mjs --max-minutes 40     # raise the hard ceiling
+ *   node scripts/render.mjs --comp Demo-9x16     # one composition of a demo
+ *   node scripts/render.mjs --all                # every format a demo has, one after another
  *
  * For scale: a 60-second 1080x1920 reel is roughly two minutes on an M1 Pro, and
  * almost all of that is rendering frames rather than encoding them. There is no
@@ -29,7 +31,7 @@
 import fs from "fs";
 import os from "os";
 import path from "path";
-import { execFileSync, spawn } from "child_process";
+import { execFileSync, spawn, spawnSync } from "child_process";
 
 const argv = process.argv.slice(2);
 const flag = (name, fallback = null) => {
@@ -38,10 +40,27 @@ const flag = (name, fallback = null) => {
 };
 const has = (name) => argv.includes(`--${name}`);
 
+// A demo project renders two compositions from one timeline. `--all` renders
+// them in turn rather than together: two renders at once would each get half the
+// memory this script just worked out one render needs.
+const isDemo = fs.existsSync(path.join("src", "demoTimeline.ts"));
+if (has("all")) {
+  const comps = isDemo ? ["Demo-16x9", "Demo-9x16"] : ["Reel"];
+  const rest = argv.filter((a) => a !== "--all");
+  for (const comp of comps) {
+    console.log(`\n━━ ${comp} ━━`);
+    const r = spawnSync(process.execPath, [import.meta.filename, ...rest, "--comp", comp], { stdio: "inherit" });
+    if (r.status !== 0) process.exit(r.status ?? 1);
+  }
+  process.exit(0);
+}
+
 const draft = has("draft");
+const comp = flag("comp", isDemo ? "Demo-16x9" : "Reel");
+const suffix = comp.startsWith("Demo-") ? `-${comp.slice(5)}` : "";
 const out =
   argv.find((a) => !a.startsWith("--") && a.endsWith(".mp4")) ??
-  path.join("out", `${path.basename(process.cwd())}${draft ? "-draft" : ""}.mp4`);
+  path.join("out", `${path.basename(process.cwd())}${suffix}${draft ? "-draft" : ""}.mp4`);
 
 /* ── What the machine can actually give us ───────────────────────────────── */
 
@@ -115,7 +134,7 @@ const concurrency = Number(flag("concurrency", chosen.n));
 const args = [
   "remotion",
   "render",
-  "Reel",
+  comp,
   out,
   "--codec=h264",
   `--concurrency=${concurrency}`,
