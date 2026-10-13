@@ -9,7 +9,7 @@
  *   2. research.mjs grounds the topic — real numbers, real objects, real human
  *      moments — so the asset manifest is built out of this world rather than
  *      out of stock-photo instincts.
- *   3. Gemini 3.1 Pro writes the plan against both, and it lands as plan.json
+ *   3. Gemini 3.8 Flash writes the plan against both, and it lands as plan.json
  *      (for the scripts) and PLAN.md (for humans).
  *
  * Usage:
@@ -152,7 +152,7 @@ const prompt = template
 console.log(`\nAsking ${MODEL} for a plan on: ${args.topic}`);
 console.log(`  look: ${direction.artDirection.name}  ·  arc: ${direction.narrativeArc.name}`);
 
-const { text } = await callGemini({ key, prompt, json: true, temperature: 1.0 });
+const { text } = await callGemini({ key, prompt, json: true });
 
 let plan;
 try {
@@ -188,7 +188,7 @@ Return ONLY a JSON array of asset objects with the fields
 { name, kind, aspect, prompt, usedIn, fromResearch, referenceOf }.`;
 
   try {
-    const extra = extractJson((await callGemini({ key, prompt: topUp, json: true, temperature: 0.9 })).text);
+    const extra = extractJson((await callGemini({ key, prompt: topUp, json: true })).text);
     const names = new Set(have.map((a) => a.name));
     plan.assetManifest = [...have, ...(Array.isArray(extra) ? extra : []).filter((a) => a?.name && !names.has(a.name))];
     // The new assets have to reach the scenes too, or they are generated and never used.

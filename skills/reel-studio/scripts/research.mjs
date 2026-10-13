@@ -88,7 +88,7 @@ Every visualMotif must be something that could actually be photographed. No abst
 
 console.log(`Researching: ${args.topic}${search ? " (with web grounding)" : ""}`);
 
-const { text, sources } = await callGemini({ key, prompt, temperature: 0.7, json: !search, search });
+const { text, sources } = await callGemini({ key, prompt, json: !search, search });
 
 let research;
 try {

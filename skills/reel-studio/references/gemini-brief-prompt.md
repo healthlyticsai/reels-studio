@@ -1,7 +1,7 @@
 # Gemini brief prompt
 
 `scripts/brief.mjs` sends everything below the horizontal rule to
-`gemini-3.1-pro-preview`, substituting `{{TOPIC}}`, `{{NOTES}}`, `{{BRAND}}`, `{{SECONDS}}`,
+`gemini-3.8-flash` (or `GEMINI_MODEL`), substituting `{{TOPIC}}`, `{{NOTES}}`, `{{BRAND}}`, `{{SECONDS}}`,
 `{{MIN_ASSETS}}`, `{{DIRECTION}}` and `{{RESEARCH}}`.
 
 Two of those placeholders are what keep reels from converging on one another:

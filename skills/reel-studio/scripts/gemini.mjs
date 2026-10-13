@@ -7,7 +7,12 @@
  * asked for in the prompt and dug out of the prose here.
  */
 
-export const MODEL = "gemini-3.1-pro-preview";
+import { envValue } from "./env.mjs";
+
+// Text model for the plan, the research and the demo staging. Artwork is
+// generated separately by generate-assets.mjs with an image model. Override
+// with GEMINI_MODEL to try another without touching code.
+export const MODEL = envValue("GEMINI_MODEL") || "gemini-3.8-flash";
 
 /** Pulls the first JSON object out of a response that may be fenced or chatty. */
 export const extractJson = (raw) => {
@@ -37,13 +42,23 @@ export const callGemini = async ({
   key,
   prompt,
   model = MODEL,
-  temperature = 0.9,
   json = false,
   search = false,
+  /** [{ mimeType, data (base64) }] — the demo brief sends the screenshots so Gemini can place focus boxes. */
+  images = [],
 }) => {
   const body = {
-    contents: [{ parts: [{ text: prompt }] }],
-    generationConfig: { temperature },
+    contents: [
+      {
+        parts: [
+          ...images.map((img) => ({ inline_data: { mime_type: img.mimeType, data: img.data } })),
+          { text: prompt },
+        ],
+      },
+    ],
+    // No temperature: Gemini 3.8 deprecates the sampling parameters
+    // (temperature, top_p, top_k) and asks for them to be left out.
+    generationConfig: {},
   };
 
   // Grounding and forced-JSON output are mutually exclusive on this endpoint.
