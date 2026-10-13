@@ -1,6 +1,6 @@
 ---
 name: reel-studio
-description: Plans, builds and renders a brand-consistent vertical promo reel (1080x1920 Remotion video with voiceover, captions, photo cutouts, motion graphics and sound design) starting from a one-line topic. Use this whenever someone wants a reel, promo video, product video, social video, explainer, Instagram/TikTok/Reels/Shorts video, launch video, or feature announcement video — including when they only say something like "make a video about our new booking flow", "we need a reel for the OSCAR integration", "can you put together a 60 second promo", or when they hand over a voiceover file and background music and ask for a video around them. Also use it when someone asks to revise, re-render, extend or restyle a reel that this skill previously produced.
+description: Plans, builds and renders a brand-consistent vertical promo reel (1080x1920 Remotion video with voiceover, captions, photo cutouts, motion graphics and sound design) starting from a one-line topic. Use this whenever someone wants a reel, promo video, product video, social video, explainer, Instagram/TikTok/Reels/Shorts video, launch video, or feature announcement video — including when they only say something like "make a video about our new booking flow", "we need a reel for the OSCAR integration", "can you put together a 60 second promo", or when they hand over a voiceover file and background music and ask for a video around them. Also use it when someone asks to revise, re-render, extend or restyle a reel that this skill previously produced. Also covers demo mode: a product demo video where the person's own avatar presents their own story over their real product screenshots, lip-synced with Higgsfield and voiced with Google Chirp 3 HD or ElevenLabs, rendered 16:9 and 9:16 — use it when someone says "product demo video", "demo with my avatar", "walk through the dashboard screenshots", or mentions the Demo Studio, /demo or /demo-build.
 ---
 
 # Reel Studio
@@ -11,7 +11,7 @@ that everything else is cut to — there is no point building animation before i
 
 ```
   Phase 1  topic ──▶ draw a creative direction ──┐
-                ──▶ research the topic  ─────────┴─▶ Gemini 3.1 Pro
+                ──▶ research the topic  ─────────┴─▶ Gemini 3.8 Flash
                                                         │
                             PLAN.md + plan.json + direction.json + VO script
                                             │
@@ -48,6 +48,8 @@ the person invokes one, and follow this file directly otherwise.
 | `/reel-check` | Render stills across the reel and read them |
 | `/reel-render` | Render the mp4 and verify the delivered file |
 | `/reel-revise` | Change an existing reel in place |
+| `/demo <folder>` | Demo mode, phase 1: stage a Studio intake into a storyboard, then stop |
+| `/demo-build` | Demo mode, phase 3: voice, lip-sync, check, render 16:9 and 9:16 |
 
 ## Before you start
 
@@ -89,7 +91,7 @@ This creates `./<topic-slug>/` in the current working directory with the Remotio
 the component kit, the brand config and the folder structure. It does not install npm
 packages yet — that happens in phase 3, so the person is not left waiting during the brief.
 
-**2. Ask Gemini 3.1 Pro for the creative plan.**
+**2. Ask Gemini 3.8 Flash for the creative plan.**
 
 ```bash
 node "$SKILL_DIR/scripts/brief.mjs" --topic "<the full topic>" --project "./<topic-slug>"
@@ -313,6 +315,110 @@ node scripts/contact-sheet.mjs --video out/<topic-slug>.mp4 /tmp/final.png
 Read that sheet. If it is clean, send the mp4 with `SendUserFile` and summarise what you
 built, what you changed from the plan, and anything you left out.
 
+## Demo mode
+
+A second pipeline in the same kit, for product demos rather than argued reels. The person
+brings three things: **their story** (spoken word for word), **their avatar** (one still image)
+and **their real product screenshots**. Out come two renders of one timeline, 16:9 and 9:16.
+
+```
+  Studio UI ──▶ intake.json + avatar + screenshots
+                    │  /demo
+  Phase 1  demo-brief.mjs: Gemini stages the story over the screenshots
+           (scenes, presenter on/off, zoom/highlight/click boxes, PHI check)
+                    │
+  ═════════ HAND-OFF: approve the storyboard (Studio or chat) ═════════
+                    │  /demo-build
+  Phase 3  tts.mjs (Google Chirp 3 HD or ElevenLabs) → transcribe.mjs → demo-timing.mjs
+           → avatar-slices.mjs → Higgsfield lip-sync via MCP → avatar-normalize.mjs
+           → stills in both formats → render.mjs --all
+```
+
+Three rules hold it up. Each one prevents a failure that is expensive to find late:
+
+- **The product is never generated.** Screens are the uploaded PNGs, shown exactly, through
+  `Screenshot` (browser or phone frame, zoom, highlight, cursor click). An AI video model
+  asked to show a UI invents text and buttons, which is wrong for a real product.
+- **One voice track.** `vo.mp3` is made once from the approved script. The presenter clips are
+  lip-synced to *slices cut from it* and played muted, so the mouth matches the soundtrack
+  exactly. Never lip-sync from text, which re-voices the line and breaks sync.
+- **The story is theirs.** `demo-brief.mjs` refuses a plan whose scenes do not reproduce the
+  story word for word. Improvements come back as `suggestedEdits` unless `--polish` is
+  passed.
+
+### Two presenter engines
+
+`intake.presenterEngine`, chosen in the Studio:
+
+- **`higgsfield`** (default, production): the whole script is voiced once (Chirp or
+  ElevenLabs), cut into per-scene slices, and each slice is lip-synced onto the avatar still by
+  Higgsfield. It gives the best sync and your own voice, but needs a paid Higgsfield plan (the
+  free plan has no credits and cannot use MCP).
+- **`omni`** (proof of concept): `omni-presenter.mjs` has Gemini Omni Flash film the presenter
+  delivering the whole script as **one continuous take** (a first clip, then extensions, about
+  40 seconds at most). Omni cannot lip-sync to supplied audio, so the pipeline is inverted:
+  the take's own audio becomes `vo.mp3`, and every presenter scene plays the take at its
+  absolute frame (`clipFrom = -from`). Sync comes from Omni generating voice and face
+  together. The voice is Omni's, not a chosen one; Omni may paraphrase a word or refuse a
+  photo of a real person (then use an illustrated character or `--describe`). It needs only
+  the Gemini key, with billing enabled for video generation.
+
+### Setup, once
+
+- Keys: `GEMINI_API_KEY`, plus the voice provider chosen in the Studio (`intake.voice.provider`):
+  - **Google Chirp 3 HD** (the default): `GOOGLE_TTS_API_KEY`, or gcloud application-default
+    credentials (`gcloud auth application-default login`), billed to `GCP_PROJECT_ID` (or
+    `GOOGLE_CLOUD_PROJECT`). Keep shared settings in `~/.reel-studio/.env`, the one `.env`
+    that every script finds, including the copies inside each demo folder.
+  - **ElevenLabs**: `ELEVENLABS_API_KEY` and `ELEVENLABS_VOICE_ID` (their cloned voice).
+
+  `node "$SKILL_DIR/scripts/check-env.mjs" --mode demo [--provider google|elevenlabs]` checks
+  them.
+- Higgsfield (engine `higgsfield` only): `claude mcp add --transport http higgsfield https://mcp.higgsfield.ai`, then sign
+  in through `/mcp`. Every generation spends Higgsfield credits. Say how many seconds are
+  about to be generated before starting, and never regenerate a clip whose job is `done`.
+- The Studio: `node studio/server.mjs` from the plugin root, then open http://localhost:4400.
+  Projects live in `$DEMO_STUDIO_ROOT` (default `~/Healthlytics/demos`).
+
+### Phase 1: stage
+
+`/demo <folder>` covers it: scaffold around the intake with `new-project.sh <folder> --mode
+demo` (it merges and never overwrites the uploads), then run
+`demo-brief.mjs --project <folder>`. Relay the storyboard in full. Then check it yourself:
+open each screenshot a scene uses and compare every focus box with the element its words name.
+Gemini's boxes are good but not perfect, and a zoom into the wrong panel is the most visible
+mistake a demo can make. Fix boxes in `plan.json` directly. Anything in `phiCheck` blocks the
+demo until the screenshot is replaced with one from a demo account.
+
+Stop at approval. The Studio writes `approved.json`; in chat, write it yourself when they say
+yes.
+
+### Phase 3: build
+
+`/demo-build` lists every step. The parts that are specific to demos:
+
+- `demo-timing.mjs` aligns the script to whisper's words (edit distance, so a misheard brand
+  name does not shift everything after it) and writes `src/demoTimeline.ts`. It is safe to
+  re-run, and `avatar-normalize.mjs` re-runs it so new clips get picked up. Do not hand-edit
+  frame numbers in the timeline; change `plan.json` or the look instead, and re-run.
+- `DemoScene` renders most scenes straight from the timeline. `src/look.ts` holds the backdrop
+  and camera. Write a custom scene only for something the plan cannot express; see the
+  component kit's "Demo" section.
+- Stills go to `out/stills/` so the Studio shows them. Check both formats: a layout that fits
+  16:9 can collide in 9:16.
+- `render.mjs --all` renders `Demo-16x9` and then `Demo-9x16`, one after the other.
+- Sound design is automatic. `demo-timing.mjs` puts the kit's six sounds on each demo's
+  recurring beats: a whoosh or whip on each cut (nothing on a fade), a quiet whoosh on each
+  zoom, a switch when a highlight lands, and a ding on the closing button. Cursor clicks play
+  their own sound inside `Screenshot`. The plan's `sfx` cues win any collision. It is off
+  when the Studio's "Sound effects" box is unchecked (`intake.soundEffects: false`).
+- A voice change after `vo.mp3` exists means redoing everything after it: `tts.mjs --force`,
+  `transcribe.mjs`, `demo-timing.mjs`, `avatar-slices.mjs` (every clip resets), then the
+  lip-sync again. Say so before doing it.
+
+A presenter clip that shows the still image rather than video means its job is not `done`.
+Check `avatar-jobs.json`: `retake` jobs carry a note saying why.
+
 ## Revising an existing reel
 
 If the reel already exists, do not start over — `cd` into its folder, make the edit, re-run
@@ -335,3 +441,5 @@ scenes themselves usually survive untouched.
 - [Gemini brief prompt](./references/gemini-brief-prompt.md) — the brief sent to Gemini.
   Edit to change the editorial standard, which is the thing that should stay constant.
 - [Troubleshooting](./references/troubleshooting.md) — known breakages and their fixes.
+- [Gemini demo prompt](./references/gemini-demo-prompt.md) — how demo mode stages a story
+  over screenshots. Edit it to change scene rules, focus-box rules or the privacy check.

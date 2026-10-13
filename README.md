@@ -11,7 +11,7 @@ pick the music. Claude builds and renders the reel.
   You:     "make a reel about the new one-click referral letters"
            │
   Phase 1  A look is drawn for this reel, the topic is researched,
-           then Gemini 3.1 Pro writes the plan — narrative arc, scene
+           then Gemini 3.8 Flash writes the plan — narrative arc, scene
            beats, the voiceover script, an asset manifest, sound cues
            │
   ═══════  You record the voiceover and pick background music  ═══════
@@ -39,6 +39,7 @@ and held out against what your last few reels used. See
 - [Installation — Claude Code](#installation--claude-code)
 - [Installation — GitHub Copilot](#installation--github-copilot)
 - [Making your first reel](#making-your-first-reel)
+- [Product demos with your avatar](#product-demos-with-your-avatar)
 - [Every reel looks different](#every-reel-looks-different)
 - [Command reference](#command-reference)
 - [Writing a good topic](#writing-a-good-topic)
@@ -397,6 +398,79 @@ is done, along with a note of anything it changed from the plan.
 
 ---
 
+## Product demos with your avatar
+
+Demo mode makes a different kind of video: **you**, as an avatar, speaking **your own
+script** over **your real product screenshots**, in a Google Chirp 3 HD voice or your own
+ElevenLabs-cloned voice. One timeline
+renders twice, at 16:9 for LinkedIn, YouTube and the website and at 9:16 for Reels, Shorts
+and TikTok.
+
+The product is never generated. Your screenshots appear exactly as you captured them, and
+the camera zooms, highlights and clicks on them, timed to the words you say.
+
+### Setup, once
+
+1. Keys in your shell profile or a `.env` (see `.env.example`):
+   - `GEMINI_API_KEY`, always.
+   - For **Google Chirp 3 HD** voices (the default): enable the Cloud Text-to-Speech API,
+     then either set `GOOGLE_TTS_API_KEY`, or run `gcloud auth application-default login` and
+     set `GCP_PROJECT_ID` to the project that pays.
+
+   Settings every demo shares are best kept in `~/.reel-studio/.env`, because the scripts
+   inside each demo folder read that file.
+   - For **ElevenLabs**: `ELEVENLABS_API_KEY`, and `ELEVENLABS_VOICE_ID` for your cloned voice.
+
+   You choose the provider and voice per demo in the Studio, and can preview it before
+   anything is built.
+2. Connect Higgsfield to Claude Code for the lip-sync:
+   ```bash
+   claude mcp add --transport http higgsfield https://mcp.higgsfield.ai
+   ```
+   Then run `/mcp` inside Claude Code and sign in. Each clip uses Higgsfield credits.
+3. Start the Studio:
+   ```bash
+   node studio/server.mjs          # http://localhost:4400
+   ```
+   Projects are saved in `~/Healthlytics/demos`, or in `$DEMO_STUDIO_ROOT` if you set it.
+
+### Two ways to make the presenter
+
+In the Studio, pick **how the presenter is made**:
+
+- **Higgsfield lip-sync.** Your voice (Chirp or ElevenLabs) is recorded once and your avatar
+  is lip-synced to it. It gives the best result, but needs a paid Higgsfield plan.
+- **Gemini Omni Flash (proof of concept).** Omni films your avatar speaking the whole script
+  in one take of up to about 40 seconds, and generates the voice itself. It needs only your
+  Gemini key (with billing enabled). The trade-offs: the voice is Omni's, it may change a
+  word, and it may decline a photo of a real person, in which case use an illustrated
+  character.
+
+### Making a demo
+
+1. **In the Studio**, click *New demo*. Write the story word for word and pick a voice
+   (*Preview voice* plays your first sentence). Drop in your avatar image (shoulders up,
+   facing the camera, plain background) and your screenshots, taken from a **demo
+   account**, and add a note on what each one shows. Sound effects (whooshes on cuts,
+   clicks, a ding on the closing card) are on by default.
+2. **In Claude Code**, run `/demo <folder>`. Gemini looks at your screenshots and stages
+   the story: which sentence plays over which screen, when you are on camera, and where the
+   camera zooms, highlights or clicks. It never rewrites your words; it offers suggestions
+   instead.
+3. **In the Studio**, check the storyboard. The zoom and click boxes are drawn over your
+   screenshots. Approve it, or tell Claude what to change.
+4. **In Claude Code**, run `/demo-build`. It voices the script with your chosen voice, lip-syncs
+   your avatar with Higgsfield for the moments you are on screen, checks frames in both
+   formats and renders both videos. They play in the Studio, where you can flag any
+   presenter clip for a retake.
+
+Each presenter clip is lip-synced to a slice cut from the one voiceover and played muted.
+That keeps your mouth in sync with the soundtrack, and a retake only regenerates that one
+slice.
+
+The logo, colours and closing-card URL come from `brand.config.json`. For a product other
+than Waivs, see [Using a different brand](#using-a-different-brand).
+
 ## Every reel looks different
 
 The thing that kills a video series is not bad reels. It is competent ones that all look the
@@ -460,6 +534,8 @@ a sentence, and because typing `/reel` shows you the whole set.
 | `/reel-check` | Render still frames across the reel and check them for layout problems. |
 | `/reel-render` | Render the video and verify the finished file. |
 | `/reel-revise <change>` | Change something in a reel that already exists. |
+| `/demo <folder>` | Stage a product demo from a Studio intake into a storyboard, then wait for approval. |
+| `/demo-build` | Voice, lip-sync, check and render an approved demo in 16:9 and 9:16. |
 
 Each takes the same free-text detail you would have typed anyway:
 
@@ -796,7 +872,7 @@ also removes the bundler override that forced Remotion off its default bundler.
   manifest gets built from.
 - **`scripts/brief.mjs`** runs those two, then sends
   `references/gemini-brief-prompt.md` — with the direction and research substituted in — to
-  `gemini-3.1-pro-preview`, and writes `plan.json` + `PLAN.md`. It tops the asset manifest up
+  `gemini-3.8-flash` (override with `GEMINI_MODEL`), and writes `plan.json` + `PLAN.md`. It tops the asset manifest up
   with a second call if it comes back under twelve.
 - **`scripts/new-project.sh`** scaffolds Remotion, copies the component kit and brand config,
   and pins the dependency set.
